@@ -296,12 +296,8 @@ window.THREEJSRCANVAS = (function(){
       mouse.__intersects = [];
       var v = new THREE.Vector3( 0, 0, 0 );
       var __dir = new THREE.Vector3( 0, 0, 1 );
-      mouse.__arrow_helper = {
-        'normal' : new THREE.ArrowHelper(__dir, v, 50, 0xff0000, 2 ),
-        'x' : new THREE.ArrowHelper(__dir.clone().set(1,0,0), v, 10, 0xff0000, 2 ),
-        'y' : new THREE.ArrowHelper(__dir.clone().set(0,1,0), v, 10, 0xff0000, 2 ),
-        'z' : new THREE.ArrowHelper(__dir.clone().set(0,0,1), v, 10, 0xff0000, 2 )
-      };
+      mouse.__arrow_helper = new THREE.ArrowHelper(__dir, v, 50, 0xff0000, 2 );
+
 
       mouse.__stats = {
         'isDown' : false
@@ -317,14 +313,11 @@ window.THREEJSRCANVAS = (function(){
               direction.y = -direction.y;
               direction.z = -direction.z;
             }
-            mouse.__arrow_helper.normal.position.set(from.x, from.y, from.z);
-            mouse.__arrow_helper.x.position.set(from.x, from.y, from.z);
-            mouse.__arrow_helper.y.position.set(from.x, from.y, from.z);
-            mouse.__arrow_helper.z.position.set(from.x, from.y, from.z);
-            mouse.__arrow_helper.normal.setDirection(direction);
-            mouse.__arrow_helper.normal.visible = true;
+            mouse.__arrow_helper.position.set(from.x, from.y, from.z);
+            mouse.__arrow_helper.setDirection(direction);
+            mouse.__arrow_helper.visible = true;
           }else{
-            mouse.__arrow_helper.normal.visible = false;
+            mouse.__arrow_helper.visible = false;
           }
         },
         'show_info' : function(items, status){
@@ -359,11 +352,7 @@ window.THREEJSRCANVAS = (function(){
   		  }
   		};
 
-      scene.add( mouse.__arrow_helper.normal );
-      scene.add( mouse.__arrow_helper.x );
-      scene.add( mouse.__arrow_helper.y );
-      scene.add( mouse.__arrow_helper.z );
-
+      scene.add( mouse.__arrow_helper );
   		innerCanvas.addEventListener( 'mousemove', function(event){
          mouse.get_mouse(event);
       }, false );
@@ -488,6 +477,9 @@ window.THREEJSRCANVAS = (function(){
           mesh_obj.userData.clipping_plane = plane;
           event_stack.clippers[mesh_name] = plane;
 
+          mesh_obj.geometry.computeBoundingBox();
+          mesh_obj.add( new THREE.BoxHelper( mesh_obj, 0xffffff ) );
+
         }
         if(typeof(clippers) !== 'object' || clippers === null || Object.keys(clippers).length === 0){
           if(typeof(clippers) === 'string'){
@@ -586,9 +578,12 @@ window.THREEJSRCANVAS = (function(){
                 // mesh_obj.position.set(pos.x, pos.y, pos.z);
                 mesh.userData.update_data_texture(loc[0], loc[1], loc[2], loc[3]);
 
+
+
                 if(mesh.userData.clipping_plane !== undefined){
                   mesh.userData.clipping_plane.constant = - pos.dot(mesh.userData.clipping_plane.normal.normalize());
                 }
+
               };
               // Sadly, we need to set positions here again
               e.userData.__funs[args.name](e.position[axis], e);
