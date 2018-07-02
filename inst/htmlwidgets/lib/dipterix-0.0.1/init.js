@@ -32,9 +32,48 @@ window.THREEJSRCANVAS = (function(){
 
 
   function register(id, container, width, height){
-    var innerCanvas, camera, controls, scene, renderer, stats, axes_helper, geoms, show_visible, mouse,
-        ani_start, fps, event_stack;
+    var innerCanvas, camera, controls, scene, renderer, side_renderer, renderer_colors, stats, axes_helper, geoms, show_visible, mouse,
+        ani_start, fps, event_stack, animation_stack, sidebar_stack;
 
+    function set_side_renderer(el){
+      el.appendChild( side_renderer.domElement );
+    }
+    function side_camera(mesh_name, args){
+      // add meshes / geoms to sidebar-cameras
+      // this function should always call after post_init i.e. all other objects are rendered and main canvas is rendered.
+      var view = args || {};
+      var mesh = geoms.filter(g => g.name == mesh_name);
+      if(mesh.length === 0){
+        console.warn('Object not found: ' + mesh_name);
+        return(null);
+      }else{
+        mesh = mesh[0];
+      }
+
+      var width = 250;
+      var sub_camera = new THREE.OrthographicCamera( width / - 2, width / 2, width / 2, width / - 2, 1, 10000 );
+			// var sub_camera = new THREE.PerspectiveCamera( 45, 1 / 1, 1, 10000 );
+			sub_camera.position.fromArray( args.position || [0, 0, 100] );
+			sub_camera.lookAt( new THREE.Vector3(0,0,0) ); // Force camera looking at object
+			sub_camera.aspect = 1;
+			sub_camera.updateProjectionMatrix();
+			sub_camera.layers.enable(1);
+  		sub_camera.layers.enable(2);
+  		sub_camera.layers.enable(3);
+  		sub_camera.layers.enable(4);
+  		sub_camera.layers.enable(5);
+  		sub_camera.layers.enable(6);
+			mesh.add( sub_camera );
+			/*
+			var helper = new THREE.CameraHelper( sub_camera );
+			helper.layers.set(4);
+      scene.add( helper );
+      */
+
+			view.mesh = mesh;
+			view.camera = sub_camera;
+			sidebar_stack[mesh_name] = view;
+    }
     function animate(){
 			requestAnimationFrame( animate );
 
@@ -51,22 +90,40 @@ window.THREEJSRCANVAS = (function(){
       */
       // FPS = 20;
       var __time_elapsed = (new Date()) - ani_start,
-          __frame = __time_elapsed / 1000 * fps,
-          frame = Math.floor(__frame),
-          delta = __frame - frame;
-
+          __frame = __time_elapsed / 1000 * fps;
 
 			controls.update();
 			mouse.update();
-			geoms.forEach(function(e){
-			  if(e.userData.animation !== undefined){
-			    e.userData.animation(frame, delta);
+			for(var ii in animation_stack){
+			  if(typeof(animation_stack[ii]) === 'function'){
+			    animation_stack[ii](__frame);
 			  }
-			});
+			}
 			render();
 		}
     function resize(width, height){
-  	  camera.aspect = width / height;
+      if(camera.isOrthographicCamera || false){
+        camera.left = width / - 2;
+    	  camera.right = width / 2;
+    	  camera.top = height / 2;
+    	  camera.bottom = height / - 2;
+      }else{
+  	    camera.aspect = width / height;
+      }
+
+      // sub cameras
+      var names = Object.keys(sidebar_stack);
+      if(names.length > 0){
+        var side_width = Math.min(250, height / (names.length + 1));
+        // side_renderer.setSize(side_width, names.length * side_width);
+        for(var ii in names){
+          sidebar_stack[names[ii]].camera.left = side_width / -2;
+          sidebar_stack[names[ii]].camera.right = side_width / 2;
+          sidebar_stack[names[ii]].camera.top = side_width / 2;
+          sidebar_stack[names[ii]].camera.bottom = side_width / -2;
+        }
+      }
+
   		camera.updateProjectionMatrix();
   		renderer.setSize( width, height );
   		controls.handleResize();
@@ -74,9 +131,29 @@ window.THREEJSRCANVAS = (function(){
   	}
   	function switch_controls(on = ['trackball']){
   		controls._active = on;
+  		controls.trackball.enabled = false;
+  		controls.orbit.enabled = false;
+  		controls[on[0]].enabled = true;
   	}
   	function render(){
+
+  	  renderer.setClearColor( renderer_colors[0] );
   		renderer.render( scene, camera );
+
+      var names = Object.keys(sidebar_stack);
+      if(names.length > 0){
+        var width = Math.min(250, height / (names.length + 1));
+        side_renderer.setSize(width, names.length * width);
+        side_renderer.setClearColor( renderer_colors[1] );
+        for(var ii in names){
+          var view = sidebar_stack[names[ii]];
+          side_renderer.setViewport( 0, ii * width, width, width );
+          side_renderer.setScissor( 0, ii * width, width, width );
+          side_renderer.setScissorTest( true );
+  				side_renderer.render( scene, view.camera );
+        }
+      }
+
 
   		if(typeof(stats) === 'object' && typeof(stats.update) === 'function'){
   		  stats.update();
@@ -97,13 +174,19 @@ window.THREEJSRCANVAS = (function(){
       geoms = [];
       ani_start = new Date();
       fps = 20;
+      animation_stack = [];
 
       // stores subset of geoms
       event_stack = {};
       // Default: clip, hover
-      event_stack.clip = [];
+      event_stack.clippers = {};
       event_stack.hover = [];
 
+      sidebar_stack = {};
+      window.sidebar_stack = sidebar_stack;
+
+      // renderer colors
+      renderer_colors = [0xefefef,0xfefefe];
 
 
       // Main canvas for 3D objects
@@ -113,6 +196,7 @@ window.THREEJSRCANVAS = (function(){
 
       // Camera
       camera = new THREE.PerspectiveCamera( 45, width / height, 1, 10000 );
+      // camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 10000 );
   		camera.position.z = 500;
   		camera.layers.enable(1);
   		camera.layers.enable(2);
@@ -121,7 +205,7 @@ window.THREEJSRCANVAS = (function(){
 
   		// World
   		scene = new THREE.Scene();
-  		scene.background = new THREE.Color( 0xefefef );
+  		// scene.background = new THREE.Color( 0xefefef );
 
   		/* Add the camera and a light to the scene, linked into one object. */
       var light = new THREE.DirectionalLight( 0xefefef, 0.5 );
@@ -134,13 +218,21 @@ window.THREEJSRCANVAS = (function(){
   		scene.add( new THREE.AmbientLight( 0x808080 ) ); // soft white light
 
   		// renderer
-  		renderer = new THREE.WebGLRenderer( { antialias: false } );
+  		renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
   		renderer.setPixelRatio( window.devicePixelRatio );
   		renderer.setSize( width, height );
+
+  		// Enable clipping
+  		renderer.localClippingEnabled=true;
   		innerCanvas.appendChild( renderer.domElement );
 
-  		axes_helper = new THREE.AxesHelper( 500 );
-  		axes_helper.visible = false;
+      // sidebar renderer (multiple renderers)
+  		side_renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
+  		side_renderer.setPixelRatio( window.devicePixelRatio );
+  		// side_renderer.setSize( width, height ); This step is set dynamically when sidebar cameras are inserted
+
+  		axes_helper = new THREE.AxesHelper( 5 );
+  		axes_helper.visible = true;
       scene.add( axes_helper );
 
       container.appendChild( innerCanvas );
@@ -166,26 +258,27 @@ window.THREEJSRCANVAS = (function(){
   		trackball.staticMoving = true;
   		trackball.dynamicDampingFactor = 0.3;
   		trackball.enableKeys = false;
-  		trackball.addEventListener( 'change', render );
+  		// trackball.addEventListener( 'change', render );
   		trackball.enabled = true;
   		controls.trackball = trackball;
 
-  		var orbit = new THREE.TrackballControls( camera, innerCanvas );
-  		orbit.rotateSpeed = 1.0;
+  		var orbit = new THREE.OrbitControls( camera, innerCanvas );
+  		orbit.rotateSpeed = 3.0;
   		orbit.zoomSpeed = 1.2;
   		orbit.panSpeed = 0.8;
   		orbit.noZoom = false;
   		orbit.noPan = false;
+  		orbit.screenSpacePanning = true;
   		orbit.staticMoving = true;
   		orbit.dynamicDampingFactor = 0.3;
   		orbit.enableKeys = false;
-  		orbit.addEventListener( 'change', render );
+  		// orbit.addEventListener( 'change', render );
   		orbit.enabled = false;
   		controls.orbit = orbit;
 
   		controls.handleResize = function(){
   		  controls.trackball.handleResize();
-  		  controls.orbit.handleResize();
+  		  // controls.orbit.handleResize();
   		};
 
   		controls._active = ['trackball'];
@@ -201,8 +294,15 @@ window.THREEJSRCANVAS = (function(){
   		mouse.__pointer = new THREE.Vector2();
       mouse.__raycaster = new THREE.Raycaster();
       mouse.__intersects = [];
-      var v = new THREE.Vector3( 1, 0, 0 );
-      mouse.__arrow_helper = new THREE.ArrowHelper(v, v, 50, 0xff0000, 2 );
+      var v = new THREE.Vector3( 0, 0, 0 );
+      var __dir = new THREE.Vector3( 0, 0, 1 );
+      mouse.__arrow_helper = {
+        'normal' : new THREE.ArrowHelper(__dir, v, 50, 0xff0000, 2 ),
+        'x' : new THREE.ArrowHelper(__dir.clone().set(1,0,0), v, 10, 0xff0000, 2 ),
+        'y' : new THREE.ArrowHelper(__dir.clone().set(0,1,0), v, 10, 0xff0000, 2 ),
+        'z' : new THREE.ArrowHelper(__dir.clone().set(0,0,1), v, 10, 0xff0000, 2 )
+      };
+
       mouse.__stats = {
         'isDown' : false
       };
@@ -217,11 +317,14 @@ window.THREEJSRCANVAS = (function(){
               direction.y = -direction.y;
               direction.z = -direction.z;
             }
-            mouse.__arrow_helper.position.set(from.x, from.y, from.z);
-            mouse.__arrow_helper.setDirection(direction);
-            mouse.__arrow_helper.visible = true;
+            mouse.__arrow_helper.normal.position.set(from.x, from.y, from.z);
+            mouse.__arrow_helper.x.position.set(from.x, from.y, from.z);
+            mouse.__arrow_helper.y.position.set(from.x, from.y, from.z);
+            mouse.__arrow_helper.z.position.set(from.x, from.y, from.z);
+            mouse.__arrow_helper.normal.setDirection(direction);
+            mouse.__arrow_helper.normal.visible = true;
           }else{
-            mouse.__arrow_helper.visible = false;
+            mouse.__arrow_helper.normal.visible = false;
           }
         },
         'show_info' : function(items, status){
@@ -242,11 +345,12 @@ window.THREEJSRCANVAS = (function(){
       };
   		mouse.update = function(all = false){
   		  mouse.__raycaster.setFromCamera( mouse.__pointer, camera );
-  		  if(all){
+  		  mouse.__intersects = mouse.__raycaster.intersectObjects( event_stack.hover );
+  		  /*if(all){
   		    mouse.__intersects = mouse.__raycaster.intersectObjects( geoms );
   		  }else{
-  		    mouse.__intersects = mouse.__raycaster.intersectObjects( event_stack.hover );
-  		  }
+
+  		  }*/
 
   		  for(var key in mouse.events){
   		    if(typeof(mouse.events[key]) === 'function'){
@@ -255,7 +359,10 @@ window.THREEJSRCANVAS = (function(){
   		  }
   		};
 
-      scene.add( mouse.__arrow_helper );
+      scene.add( mouse.__arrow_helper.normal );
+      scene.add( mouse.__arrow_helper.x );
+      scene.add( mouse.__arrow_helper.y );
+      scene.add( mouse.__arrow_helper.z );
 
   		innerCanvas.addEventListener( 'mousemove', function(event){
          mouse.get_mouse(event);
@@ -296,21 +403,41 @@ window.THREEJSRCANVAS = (function(){
         'mesh_event' : mesh_event,
         'ani_start' : ani_start,
         'set_fps' : set_fps,
-        'clear_all' : clear_all
+        'clear_all' : clear_all,
+        'post_init' : post_init,
+        'side_camera' : side_camera,
+        'side_renderer' : side_renderer,
+        'set_side_renderer' : set_side_renderer,
+        'set_renderer_colors' : set_renderer_colors
       });
+    }
+
+    function set_renderer_colors(main_color, side_color){
+      renderer_colors[0] = main_color;
+      renderer_colors[1] = side_color;
     }
 
     function clear_all(){
       for(var i in geoms){
         scene.remove(geoms[i]);
       }
+
+      /* TODO: remove cameras in sidebar_stack
+      for(var mn in sidebar_stack){
+        sidebar_stack[mn].camera
+      }
+      */
+
       geoms.length = 0;  // remove all elements from the array
     }
 
     function add_mesh(mesh_type, mesh_name, geom_args,
                       position = [0,0,0], transform = undefined,
                       layer = 1, mesh_info = '',
-                      enabled_events = ['clip', 'hover']){
+                      clippers = null,
+                      clip_intersect = false,
+                      is_clipper = false,
+                      hover_enabled = true){
       var geom_func = THREEJSRGEOMS[mesh_type],
           mesh_obj,
           geom_obj;
@@ -332,30 +459,55 @@ window.THREEJSRCANVAS = (function(){
           geom_obj.geom.applyMatrix(mat);
         }
 
-        mesh_obj = new THREE.Mesh( geom_obj.geom , new THREE.MeshLambertMaterial() );
+        mesh_obj = new THREE.Mesh( geom_obj.geom , new THREE.MeshLambertMaterial({ 'transparent' : true }) );
         window.mm = mesh_obj;
+        mesh_obj.userData.__params = {};
+        mesh_obj.userData.__funs = {};
+
         mesh_obj.layers.set(layer);
         mesh_obj.position.set(position[0], position[1], position[2]);
         mesh_obj.name = mesh_name;
         mesh_obj.userData.set_data_texture = geom_obj.set_data_texture;
         mesh_obj.userData.update_data_texture = geom_obj.update_data_texture;
         mesh_obj.userData.mesh_info = mesh_info;
-        mesh_obj.userData.set_position = function(pos){
-          mesh_obj.position.set(pos.x, pos.y, pos.z);
-          if( mesh_obj.userData.position !== undefined ){
-            mesh_obj.userData.position(pos);
+        mesh_obj.userData.clip_intersect = clip_intersect;
+        geoms.push(mesh_obj);
+        if(hover_enabled){
+          event_stack.hover.push(mesh_obj);
+        }
+        if(is_clipper){
+
+          // Need this in order to get plane mesh normals
+          mesh_obj.geometry.computeVertexNormals();
+
+          // get normal
+          var normal = mesh_obj.geometry.getAttribute('normal').array,
+              plane = new THREE.Plane( new THREE.Vector3( normal[0], normal[1], normal[2] ), 0 );
+          console.log(normal);
+
+          mesh_obj.userData.clipping_plane = plane;
+          event_stack.clippers[mesh_name] = plane;
+
+        }
+        if(typeof(clippers) !== 'object' || clippers === null || Object.keys(clippers).length === 0){
+          if(typeof(clippers) === 'string'){
+            mesh_obj.userData.clippers = [clippers];
+          }else{
+            mesh_obj.userData.clippers = [];
+          }
+        }else{
+          mesh_obj.userData.clippers = clippers;
+        }
+        /*
+        clippingPlanes: clipPlanes,
+						clipIntersection: params.clipIntersection
+        */
+        mesh_obj.userData.set_clippers = function(){
+          if(mesh_obj.userData.clippers.length > 0){
+            mesh_obj.material.clippingPlanes = mesh_obj.userData.clippers.map((k) => (event_stack.clippers[k])).filter((v) => (v !== undefined));
+            mesh_obj.material.clipIntersection = clip_intersect || false;
           }
         };
-        geoms.push(mesh_obj);
-        if(typeof(enabled_events) !== 'object'){
-          enabled_events = [enabled_events];
-        }
-        enabled_events.forEach(function(e){
-          if(event_stack[e] === 'undefined'){
-            event_stack[e] = [];
-          }
-          event_stack[e].push(mesh_obj);
-        });
         scene.add(mesh_obj);
         return(mesh_obj);
       }else{
@@ -363,63 +515,99 @@ window.THREEJSRCANVAS = (function(){
       }
     }
 
+    function post_init(){
+      geoms.forEach(function(g){
+        if(typeof(g.userData.set_clippers) === 'function'){
+          g.userData.set_clippers();
+        }
+      });
+    }
+
     // event_type can be one of the following
     // 1. animation
     // 2. position
-    function mesh_event(mesh_name, event_type, data, sub_type = 'z'){
-      var mesh = geoms.filter(g => g.name == mesh_name);
+    function mesh_event(mesh_name, event_type, args){
+      // (e.mesh_name, event_type,
+      //          args = e.events[event_type]);
+
+      var mesh = geoms.filter(g => g.name == mesh_name),
+          data = args.data,
+          pixel_size = args.pixel_size || 3, // RGB three colors, alpha will be ignored
+          keys = args.key_frames || Object.keys(data), // MUST be str and can be parseFloat
+          max_len = keys.length,
+          num = keys.map(Number),
+          find_keys = function(val){
+            var ind = __closest(val, num),
+                prev, nxt, a = 1, b = 1;
+
+            if(ind.which_less > -1 && ind.which_greater > -1){
+              // prev <= val <= nxt
+              prev = ind.which_less;
+              nxt = ind.which_greater;
+              a = (num[ind.which_greater] - val) / (num[ind.which_greater] - num[ind.which_less]);
+              b = 1 - a; // linear transition
+            }else if(ind.which_less > -1){
+              // val >= max(num)
+              prev = ind.which_less;
+              nxt = prev;
+              a = b = 0.5;
+            }else if(ind.which_greater > -1){
+              // val <= min(num)
+              prev = ind.which_greater;
+              nxt = prev;
+              a = b = 0.5;
+            }
+
+            return([prev, nxt, a, b]);
+          };
       if(mesh.length > 0){
 
         window.mm = data;
 
         mesh.forEach(function(e){
 
-          var keys = Object.keys(data),
-              max_len = keys.length,
-              a, b;
+          var param = {...args, ...e.userData.__params[args.name]};
 
-          e.userData.set_data_texture( mesh = e, data = data,
+          e.userData.texture_alpha = args.alpha || param.alpha || false;
+          e.userData.texture_threshold = args.threshold || param.threshold || 0;
+
+          e.userData.set_data_texture( mesh = e, data = data, pixel_size = pixel_size,
                         max_anisotropy = renderer.capabilities.getMaxAnisotropy() );
-          // e.material = new THREE.MeshBasicMaterial({ 'map' : map, 'side' : THREE.DoubleSide });
 
           switch (event_type) {
             case 'position':
-              // dataTexture = new THREE.DataTexture( data, width, height, THREE.RGBFormat );
+              var axis = param.axis || 'z';
+              e.userData.__funs[args.name] = function(value, mesh){    // mesh is used since e = mesh
+                var pos = mesh.position,
+                    loc = find_keys(value);
 
-              var num = keys.map(Number);
-              e.userData[event_type] = function(pos){
+                pos[axis] = value;
 
-                var key = pos[sub_type],
-                    ind = __closest(key, num),
-                    key1, key2, a = 1, b = 1;
+                // mesh_obj.position.set(pos.x, pos.y, pos.z);
+                mesh.userData.update_data_texture(loc[0], loc[1], loc[2], loc[3]);
 
-                if(ind.which_less > -1 && ind.which_greater > -1){
-                  key1 = keys[ind.which_less];
-                  key2 = keys[ind.which_greater];
-                  a = (num[ind.which_greater] - key) / (num[ind.which_greater] - num[ind.which_less]);
-                  b = 1 - a;
-                }else if(ind.which_less > -1){
-                  key1 = keys[ind.which_less];
-                }else if(ind.which_greater > -1){
-                  key1 = keys[ind.which_greater];
+                if(mesh.userData.clipping_plane !== undefined){
+                  mesh.userData.clipping_plane.constant = - pos.dot(mesh.userData.clipping_plane.normal.normalize());
                 }
-
-                e.userData.update_data_texture(key1, key2, a, b);
-                // e.userData.set_position(new THREE.Vector3().copy(e.position));
               };
+              // Sadly, we need to set positions here again
+              e.userData.__funs[args.name](e.position[axis], e);
               break;
 
             case 'animation':
-              e.userData[event_type] = function(frame, delta){
-                if(sub_type == 'loop'){
-                  frame = frame % max_len;
-                }
-                if(frame < max_len){
-                  e.userData.update_data_texture(
-                    key1 = frame, key2 = frame + 1, a = 1 - delta, b = delta
-                  );
+              var loop = args.loop || false;
+              e.userData.__funs[args.name] = function(frame, mesh){
+                if(loop || frame < max_len){
+                  if(loop){
+                    frame = frame % max_len;
+                  }
+                  // Then loop = false and animation ends, no need to update
+                  var loc = find_keys(frame);
+                  e.userData.update_data_texture(loc[0], loc[1], loc[2], loc[3]);
                 }
               };
+              e.userData.__funs[args.name](0, e);
+              animation_stack.push(e.userData.__funs[args.name]);
               break;
 
 

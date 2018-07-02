@@ -3,18 +3,23 @@
 }
 
 .threejs-scene-aside {
-  padding: 20px 5px;
-  width: 245px;
-  max-width: 400px;
-  min-width: 150px;
-  /* float: right; */
+  width: 100%;
+  /* max-width: 400px;
+  min-width: 150px; */
+  float: left;
   background-color: transparent;
-  position: absolute;
   z-index: 10;
   overflow-x: hidden;
   overflow-y:scroll;
   /*resize: horizontal;*/
   pointer-events: none;
+  position: relative;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  opacity: 0.9;
+  display: block;
+  margin-bottom: -100%;
 }
 
 

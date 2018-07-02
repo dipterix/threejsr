@@ -15,7 +15,7 @@ window.THREEJSRGEOMS = (function(){
     var __mesh,
         __dat,
         __width = 8;
-    var set_data_texture = function( mesh, data, max_anisotropy = 1 ){
+    var set_data_texture = function( mesh, data, pixel_size = 3, max_anisotropy = 1 ){
       /*
       We don't set texture to customized mesh data. Instead, we set vertex colors
       */
@@ -44,6 +44,7 @@ window.THREEJSRGEOMS = (function(){
       a = a / (a + b);
       b = 1-a;
 
+      // TODO
       // what's the width of texture?
       /*for(var i = 0; i < (__width*__width * 3); i++){
         __cols[i] = col[i] * a + col_2[i] * b;
@@ -87,28 +88,36 @@ window.THREEJSRGEOMS = (function(){
     var __dat,
         __dataTexture,
         __width = 8,
-        __cols = new Uint8Array( 3 * __width * __width );
-    var set_data_texture = function( mesh, data, max_anisotropy = 1 ){
+        __data_point_pixel,
+        __mesh,
+        __cols = new Float32Array( 4 * __width * __width );
+    var set_data_texture = function( mesh, data, pixel_size = 3, max_anisotropy = 1 ){
       /*
       * For sphere object, data will be: [key: val] - val is
       * single color - new Uint8Array( 3 );
       */
       __dat = data;
+      __data_point_pixel = pixel_size;
 
 			__dataTexture = new THREE.DataTexture(
 			      __cols , __width, __width,
-			      THREE.RGBFormat,
-			      THREE.UnsignedByteType,
+			      THREE.RGBAFormat,
+			      THREE.FloatType,
 			      THREE.UVMapping,
 			      anisotropy = 1);
 
-			mesh.material = new THREE.MeshBasicMaterial({ 'map' : __dataTexture });
+			__mesh = mesh;
+
+			mesh.material = new THREE.MeshBasicMaterial({ 'map' : __dataTexture, 'transparent' : true });
 			return(__dataTexture);
     };
 
     var update_data_texture = function( key, key_2, a, b, update_texture = true ){
       var col = __dat[key],
-          col_2 = __dat[key_2], c;
+          col_2 = __dat[key_2], c,
+          threshold = __mesh.userData.texture_threshold || 0,
+          alpha = __mesh.userData.texture_alpha || false,
+          dpp = String(parseInt(__data_point_pixel));
       if(col === undefined && col_2 === undefined){
         return(null);
       }
@@ -123,16 +132,47 @@ window.THREEJSRGEOMS = (function(){
         a = b = 0.5;
       }
 
-      c = [
-        col[0] * a + col_2[0] * b,
-        col[1] * a + col_2[1] * b,
-        col[2] * a + col_2[2] * b
-      ];
+      var tmp;
+      switch (dpp) {
+        case '1':
+          tmp = col[0] * a + col_2[0] * b;
+          c = [tmp,tmp,tmp,tmp];
+          break;
+
+        case '2':
+          tmp = col[0] * a + col_2[0] * b;
+          c = [tmp,tmp,tmp,col[1] * a + col_2[1] * b];
+          break;
+
+        case '3':
+          c = [
+            col[0] * a + col_2[0] * b,
+            col[1] * a + col_2[1] * b,
+            col[2] * a + col_2[2] * b,
+            1,
+          ];
+          break;
+
+        default:
+          c = [
+            col[0] * a + col_2[0] * b,
+            col[1] * a + col_2[1] * b,
+            col[2] * a + col_2[2] * b,
+            col[3] * a + col_2[3] * b,
+          ];
+      }
+
+      if(!alpha){
+        c[3] = 1;
+      }else if(c[3] < threshold){
+        c[3] = 0;
+      }
 
       for(var i = 0; i<(__width*__width); i++){
-        __cols[0 + 3*i] = c[0];
-        __cols[1 + 3*i] = c[1];
-        __cols[2 + 3*i] = c[2];
+        __cols[0 + 4*i] = c[0];
+        __cols[1 + 4*i] = c[1];
+        __cols[2 + 4*i] = c[2];
+        __cols[3 + 4*i] = c[3];
       }
 
       if(update_texture){
@@ -162,35 +202,42 @@ window.THREEJSRGEOMS = (function(){
     var __dat,
         __dataTexture,
         __width,// = Math.pow(2, Math.floor(Math.log(Math.min(init_args.width, init_args.height)) / Math.log(2))),
+        __mesh,
         __cols;// = new Uint8Array( 3 * __width * __width );
 
-    var set_data_texture = function( mesh, data, max_anisotropy = 1 ){
+    var set_data_texture = function( mesh, data, pixel_size = 3, max_anisotropy = 1 ){
       /*
       * For plane object, data will be: [key: val] - val is
       * image - new Uint8Array( 3 x width x height );
       */
       __dat = data;
-      __width = Math.floor(Math.sqrt(__dat[Object.keys(__dat)[0]].length / 3));
-      console.log(__width);
-      __cols = new Uint8Array( 3 * __width * __width );
+      __data_point_pixel = pixel_size;
+      __width = Math.floor(Math.sqrt(__dat[Object.keys(__dat)[0]].length / pixel_size));
+      __cols = new Float32Array( 4 * __width * __width );
+
+      window.ccc = __cols;
 
 			__dataTexture = new THREE.DataTexture(
 			      __cols , __width, __width,
-			      THREE.RGBFormat,
-			      THREE.UnsignedByteType,
+			      THREE.RGBAFormat,
+			      THREE.FloatType,
 			      THREE.UVMapping,
 			      anisotropy = max_anisotropy
 			);
 
 			__dataTexture.wrapS = __dataTexture.wrapT = THREE.ClampToEdgeWrapping;
 
-			mesh.material = new THREE.MeshBasicMaterial({ 'map' : __dataTexture, 'side' : THREE.DoubleSide });
+			__mesh = mesh;
+			mesh.material = new THREE.MeshBasicMaterial({ 'map' : __dataTexture, 'side' : THREE.DoubleSide, 'transparent' : true });
 			return(__dataTexture);
     };
 
     var update_data_texture = function( key, key_2, a, b, update_texture = true ){
       var col = __dat[key],
-          col_2 = __dat[key_2], c1,c2,c3;
+          col_2 = __dat[key_2], c1,c2,c3,
+          dpp = String(parseInt(__data_point_pixel)),
+          threshold = __mesh.userData.texture_threshold || 0.005,
+          alpha = __mesh.userData.texture_alpha || false;
       if(col === undefined && col_2 === undefined){
         return(null);
       }
@@ -209,8 +256,64 @@ window.THREEJSRGEOMS = (function(){
       b = 1-a;
 
       // what's the width of texture?
-      for(var i = 0; i < (__width*__width * 3); i++){
-        __cols[i] = col[i] * a + col_2[i] * b;
+      var tmp, i;
+
+      switch (dpp) {
+        case '1':
+          for(i = 0; i < (__width*__width); i++){
+            // strip = __data_point_pixel
+            tmp = __data_point_pixel*i;
+            __cols[4*i] = col[tmp] * a + col_2[tmp] * b;
+            __cols[4*i+1] = __cols[4*i];
+            __cols[4*i+2] = __cols[4*i];
+            __cols[4*i+3] = __cols[4*i];
+          }
+          break;
+
+        case '2':
+          for(i = 0; i < (__width*__width); i++){
+            // strip = __data_point_pixel
+            tmp = __data_point_pixel*i;
+            __cols[4*i] = col[tmp] * a + col_2[tmp] * b;
+            __cols[4*i+1] = __cols[4*i];
+            __cols[4*i+2] = __cols[4*i];
+            __cols[4*i+3] = col[tmp+1] * a + col_2[tmp+1] * b;
+          }
+          break;
+
+        case '3':
+          for(i = 0; i < (__width*__width); i++){
+            // strip = __data_point_pixel
+            tmp = __data_point_pixel*i;
+            __cols[4*i] = col[tmp] * a + col_2[tmp] * b;
+            __cols[4*i+1] = col[tmp+1] * a + col_2[tmp+1] * b;
+            __cols[4*i+2] = col[tmp+2] * a + col_2[tmp+2] * b;
+            __cols[4*i+3] = 1;
+          }
+          break;
+
+        default:
+          for(i = 0; i < (__width*__width); i++){
+            // strip = __data_point_pixel
+            tmp = __data_point_pixel*i;
+            __cols[4*i] = col[tmp] * a + col_2[tmp] * b;
+            __cols[4*i+1] = col[tmp+1] * a + col_2[tmp+1] * b;
+            __cols[4*i+2] = col[tmp+2] * a + col_2[tmp+2] * b;
+            __cols[4*i+3] = col[tmp+3] * a + col_2[tmp+3] * b;
+          }
+      }
+
+      // threshold alpha
+      if(!alpha){
+        for(i = 0; i < (__width*__width); i++){
+          __cols[4*i+3] = 1;
+        }
+      }else if(threshold > 0){
+        for(i = 0; i < (__width*__width); i++){
+          if(__cols[4*i+3] < threshold){
+            __cols[4*i+3] = 0;
+          }
+        }
       }
 
       if(update_texture){
