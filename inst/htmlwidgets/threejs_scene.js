@@ -34,10 +34,9 @@ HTMLWidgets.widget({
   factory: function(el, width, height) {
     // get full width if not shiny mode
     if(!HTMLWidgets.shinyMode){
-      // document.body.style.padding = 0;
-      $('#htmlwidget_container').css({'margin':'-40px'});
+      document.body.style.padding = 0;
+      // $('#htmlwidget_container').css({'margin':'-40px'});
       $(el).css({'height':'100vh'});
-      window.dispatchEvent(new Event('resize'));
     }
 
     // Get DOM elements

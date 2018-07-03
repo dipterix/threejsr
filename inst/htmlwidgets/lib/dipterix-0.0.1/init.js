@@ -32,7 +32,7 @@ window.THREEJSRCANVAS = (function(){
 
 
   function register(id, container, width, height){
-    var innerCanvas, camera, controls, scene, renderer, side_renderer, renderer_colors, stats, axes_helper, geoms, show_visible, mouse,
+    var innerCanvas, camera, controls, scene, scene2, renderer, side_renderer, renderer_colors, stats, axes_helper, geoms, show_visible, mouse,
         ani_start, fps, event_stack, animation_stack, sidebar_stack;
 
     function set_side_renderer(el){
@@ -57,12 +57,11 @@ window.THREEJSRCANVAS = (function(){
 			sub_camera.lookAt( new THREE.Vector3(0,0,0) ); // Force camera looking at object
 			sub_camera.aspect = 1;
 			sub_camera.updateProjectionMatrix();
-			sub_camera.layers.enable(1);
-  		sub_camera.layers.enable(2);
   		sub_camera.layers.enable(3);
   		sub_camera.layers.enable(4);
   		sub_camera.layers.enable(5);
   		sub_camera.layers.enable(6);
+  		sub_camera.layers.enable(30);
 			mesh.add( sub_camera );
 			/*
 			var helper = new THREE.CameraHelper( sub_camera );
@@ -138,7 +137,10 @@ window.THREEJSRCANVAS = (function(){
   	function render(){
 
   	  renderer.setClearColor( renderer_colors[0] );
+  	  renderer.clear();
   		renderer.render( scene, camera );
+  		renderer.clearDepth();
+  		renderer.render( scene2, camera );
 
       var names = Object.keys(sidebar_stack);
       if(names.length > 0){
@@ -150,7 +152,10 @@ window.THREEJSRCANVAS = (function(){
           side_renderer.setViewport( 0, ii * width, width, width );
           side_renderer.setScissor( 0, ii * width, width, width );
           side_renderer.setScissorTest( true );
+  				side_renderer.clear();
   				side_renderer.render( scene, view.camera );
+          side_renderer.clearDepth();
+          side_renderer.render( scene2, view.camera );
         }
       }
 
@@ -198,6 +203,7 @@ window.THREEJSRCANVAS = (function(){
       camera = new THREE.PerspectiveCamera( 45, width / height, 1, 10000 );
       // camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 10000 );
   		camera.position.z = 500;
+  		camera.layers.enable(0);
   		camera.layers.enable(1);
   		camera.layers.enable(2);
   		camera.layers.enable(3);
@@ -205,6 +211,7 @@ window.THREEJSRCANVAS = (function(){
 
   		// World
   		scene = new THREE.Scene();
+  		scene2 = new THREE.Scene();
   		// scene.background = new THREE.Color( 0xefefef );
 
   		/* Add the camera and a light to the scene, linked into one object. */
@@ -221,6 +228,7 @@ window.THREEJSRCANVAS = (function(){
   		renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
   		renderer.setPixelRatio( window.devicePixelRatio );
   		renderer.setSize( width, height );
+  		renderer.autoClear = false; // Manual update so that it can render two scenes
 
   		// Enable clipping
   		renderer.localClippingEnabled=true;
@@ -229,6 +237,7 @@ window.THREEJSRCANVAS = (function(){
       // sidebar renderer (multiple renderers)
   		side_renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
   		side_renderer.setPixelRatio( window.devicePixelRatio );
+  		side_renderer.autoClear = false; // Manual update so that it can render two scenes
   		// side_renderer.setSize( width, height ); This step is set dynamically when sidebar cameras are inserted
 
   		axes_helper = new THREE.AxesHelper( 5 );
@@ -297,6 +306,12 @@ window.THREEJSRCANVAS = (function(){
       var v = new THREE.Vector3( 0, 0, 0 );
       var __dir = new THREE.Vector3( 0, 0, 1 );
       mouse.__arrow_helper = new THREE.ArrowHelper(__dir, v, 50, 0xff0000, 2 );
+      var __arrow_helper_root = new THREE.Mesh(
+        new THREE.BoxBufferGeometry( 6,6,6 ),
+        new THREE.MeshBasicMaterial({ color : 0x00ff00 })
+      );
+      __arrow_helper_root.layers.set(30);
+      mouse.__arrow_helper.add( __arrow_helper_root );
 
 
       mouse.__stats = {
@@ -352,7 +367,7 @@ window.THREEJSRCANVAS = (function(){
   		  }
   		};
 
-      scene.add( mouse.__arrow_helper );
+      scene2.add( mouse.__arrow_helper );
   		innerCanvas.addEventListener( 'mousemove', function(event){
          mouse.get_mouse(event);
       }, false );
@@ -363,6 +378,14 @@ window.THREEJSRCANVAS = (function(){
       innerCanvas.addEventListener( 'mouseup', function(event){
          mouse.__stats.isDown = false;
          mouse.update();
+      }, false );
+      innerCanvas.addEventListener( 'click', function(event){
+        mouse.__stats.isClicked = true;
+         mouse.get_mouse(event);
+      }, false );
+      innerCanvas.addEventListener( 'dblclick', function(event){
+        mouse.__stats.isDblClicked = true;
+         mouse.get_mouse(event);
       }, false );
 
 
@@ -472,13 +495,15 @@ window.THREEJSRCANVAS = (function(){
           // get normal
           var normal = mesh_obj.geometry.getAttribute('normal').array,
               plane = new THREE.Plane( new THREE.Vector3( normal[0], normal[1], normal[2] ), 0 );
-          console.log(normal);
 
           mesh_obj.userData.clipping_plane = plane;
           event_stack.clippers[mesh_name] = plane;
 
           mesh_obj.geometry.computeBoundingBox();
-          mesh_obj.add( new THREE.BoxHelper( mesh_obj, 0xffffff ) );
+
+          var bounding_box = new THREE.BoxHelper( mesh_obj, 0xffffff );
+          bounding_box.layers.set( 30 );
+          mesh_obj.add( bounding_box );
 
         }
         if(typeof(clippers) !== 'object' || clippers === null || Object.keys(clippers).length === 0){
