@@ -68,15 +68,18 @@ HTMLWidgets.widget({
         canvas.clear_all();
 
         if($side_pane === null){
-          $el.parent().prepend(x.sidebar);
+          $el.parent().append(x.sidebar);
           $side_pane = $el.siblings('.threejs-scene-aside'),
           $info_pane = $side_pane.find('.threejs-scene-info').last(),
           $ctrl_pane = $side_pane.find('.threejs-scene-control').last(),
-          $side_camr = $side_pane.find('.threejs-scene-sidecamera').last(),
+          $side_camr = $side_pane.find('.threejs-scene-sidecamera').last();
           // Set DOM elements
           $side_pane.height(height);
-
+          $side_pane.css({
+            'margin-top': '-' + height + 'px'
+          });
         }
+
 
         canvas.set_renderer_colors(
           new THREE.Color().fromArray(x.background_colors[0]),
@@ -179,6 +182,9 @@ HTMLWidgets.widget({
       resize: function(width, height) {
         if($side_pane !== null){
           $side_pane.height(height);
+          $side_pane.css({
+            'margin-top': '-' + height + 'px'
+          });
         }
 
         canvas.resize(width, height);
