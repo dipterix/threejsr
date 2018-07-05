@@ -14,7 +14,7 @@ threejs_scene.default <- function(
   fps = 20,
   control_gui = T,
   control = 'trackball',
-  background_colors = c('#efefef', '#fefefe'),
+  background_colors = c('#ffffff', '#efefef'),#c('#efefef', '#fefefe'),
   extra_cameras = list(),
   width = '100%',
   height = '80vh'

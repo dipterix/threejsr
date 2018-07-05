@@ -550,33 +550,43 @@ window.THREEJSRCANVAS = (function(){
       var mesh = geoms.filter(g => g.name == mesh_name),
           data = args.data,
           pixel_size = args.pixel_size || 3, // RGB three colors, alpha will be ignored
-          keys = args.key_frames || Object.keys(data), // MUST be str and can be parseFloat
-          max_len = keys.length,
-          num = keys.map(Number),
-          find_keys = function(val){
-            var ind = __closest(val, num),
-                prev, nxt, a = 1, b = 1;
+          keys = args.key_frames || Object.keys(data),
+          find_keys; // MUST be str and can be parseFloat
 
-            if(ind.which_less > -1 && ind.which_greater > -1){
-              // prev <= val <= nxt
-              prev = ind.which_less;
-              nxt = ind.which_greater;
-              a = (num[ind.which_greater] - val) / (num[ind.which_greater] - num[ind.which_less]);
-              b = 1 - a; // linear transition
-            }else if(ind.which_less > -1){
-              // val >= max(num)
-              prev = ind.which_less;
-              nxt = prev;
-              a = b = 0.5;
-            }else if(ind.which_greater > -1){
-              // val <= min(num)
-              prev = ind.which_greater;
-              nxt = prev;
-              a = b = 0.5;
-            }
+      if(typeof(keys) !== 'object'){
+        keys = [keys];
+        find_keys = function(val){
+          return([0, 0, 1, 0]);
+        };
+      }else{
+        find_keys = function(val){
+        var ind = __closest(val, num),
+            prev, nxt, a = 1, b = 1;
 
-            return([prev, nxt, a, b]);
-          };
+        if(ind.which_less > -1 && ind.which_greater > -1){
+          // prev <= val <= nxt
+          prev = ind.which_less;
+          nxt = ind.which_greater;
+          a = (num[ind.which_greater] - val) / (num[ind.which_greater] - num[ind.which_less]);
+          b = 1 - a; // linear transition
+        }else if(ind.which_less > -1){
+          // val >= max(num)
+          prev = ind.which_less;
+          nxt = prev;
+          a = b = 0.5;
+        }else if(ind.which_greater > -1){
+          // val <= min(num)
+          prev = ind.which_greater;
+          nxt = prev;
+          a = b = 0.5;
+        }
+
+        return([prev, nxt, a, b]);
+      };
+      }
+      var max_len = keys.length,
+          num = keys.map(Number);
+
       if(mesh.length > 0){
 
         window.mm = data;
