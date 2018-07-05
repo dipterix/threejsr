@@ -47,9 +47,7 @@ threejs_scene.default <- function(
   assertthat::assert_that(length(extra_cameras) == 0 || sum(duplicated(sapply(extra_cameras, '[[', 'look_at'))) == 0,
                           msg = 'Elements in extra_cameras must have distinct mesh_name(s)');
 
-  aside_class = ''
   if(missing(sidebar)){
-    # aside_class = 'hidden'
     sidebar = NULL
   }
 
@@ -65,30 +63,7 @@ threejs_scene.default <- function(
     control = control,
     extra_cameras = extra_cameras,
     background_colors = t(col2rgb(background_colors)) / 255,
-    sidebar = as.character(
-      div(
-        class = paste('threejs-scene-aside', aside_class),
-        style = sprintf('height: %s', height),
-        fluidRow(
-          column(
-            9,
-            div(class = 'threejs-scene-control hidden'),
-            div(
-              style = 'padding: 25px 5px;',
-              sidebar
-            )
-          ),
-          column(
-            3,
-            div(
-              style = 'float:right;',
-              div(class = 'threejs-scene-sidecamera'),
-              div(class = 'threejs-scene-info')
-            )
-          )
-        )
-      )
-    )
+    sidebar = as.character(sidebar)
   )
 
 

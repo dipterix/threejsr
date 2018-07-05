@@ -35,16 +35,37 @@ HTMLWidgets.widget({
     // get full width if not shiny mode
     if(!HTMLWidgets.shinyMode){
       document.body.style.padding = 0;
-      // $('#htmlwidget_container').css({'margin':'-40px'});
       $(el).css({'height':'100vh'});
     }
 
     // Get DOM elements
     var $el = $(el),
-        $side_pane = null,
-        $info_pane = null,
-        $ctrl_pane = null,
-        $side_camr = null,
+        $side_pane;
+
+    var __sidebar = `
+    <div class="threejs-scene-aside " style="height: ` + height + 'px; margin-bottom: -' + height + `px;">
+      <div class="row">
+        <div class="col-sm-9">
+          <div class="threejs-scene-control hidden"></div>
+          <div style="threejs-scene-customized"></div>
+          <div class="threejs-scene-info"></div>
+        </div>
+        <div class="col-sm-3">
+          <div style="float:right;">
+            <div class="threejs-scene-sidecamera"></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+
+    $el.prepend(__sidebar);
+    $side_pane = $el.find('.threejs-scene-aside');
+
+    var $info_pane = $side_pane.find('.threejs-scene-info').last(),
+        $ctrl_pane = $side_pane.find('.threejs-scene-control').last(),
+        $side_camr = $side_pane.find('.threejs-scene-sidecamera').last(),
+        $side_cust = $side_pane.find('.threejs-scene-customized').last(),
         eid = el.id,
         canvas = THREEJSRCANVAS.register(id = eid, el, width, height);
 
@@ -62,23 +83,14 @@ HTMLWidgets.widget({
       renderValue: function(x) {
         window.x = x;
 
+
+
         if(!HTMLWidgets.shinyMode){
           window.dispatchEvent(new Event('resize'));
         }
         canvas.clear_all();
 
-        if($side_pane === null){
-          $el.parent().append(x.sidebar);
-          $side_pane = $el.siblings('.threejs-scene-aside'),
-          $info_pane = $side_pane.find('.threejs-scene-info').last(),
-          $ctrl_pane = $side_pane.find('.threejs-scene-control').last(),
-          $side_camr = $side_pane.find('.threejs-scene-sidecamera').last();
-          // Set DOM elements
-          $side_pane.height(height);
-          $side_pane.css({
-            'margin-top': '-' + height + 'px'
-          });
-        }
+        $side_cust.html(x.sidebar);
 
 
         canvas.set_renderer_colors(
@@ -183,7 +195,7 @@ HTMLWidgets.widget({
         if($side_pane !== null){
           $side_pane.height(height);
           $side_pane.css({
-            'margin-top': '-' + height + 'px'
+            'margin-bottom': '-' + height + 'px'
           });
         }
 

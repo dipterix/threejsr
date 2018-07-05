@@ -19,11 +19,17 @@
   cursor: pointer;
   opacity: 0.9;
   display: block;
-  margin-top: -100%;
+  margin-bottom: -100%;
 }
 
 
 .threejs-scene-aside .threejs-scene-info,
 .threejs-scene-aside .threejs-scene-control {
   pointer-events: all;
+}
+
+
+.threejs-scene-info {
+  margin-top: 20px;
+  padding-top: 15px;
 }
