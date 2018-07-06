@@ -76,6 +76,15 @@ HTMLWidgets.widget({
 
     window.cc = canvas;
 
+    // Add shiny callbacks
+    var shiny_input_id;
+    function threejsr_to_shiny(data){
+      if(HTMLWidgets.shinyMode && shiny_input_id !== ''){
+        var re = {...data, '__count': new Date()};
+        Shiny.onInputChange(shiny_input_id, re);
+      }
+    }
+
 
     return {
       // "find", "renderError", "clearError", "sizing", "name", "type", "initialize", "renderValue", "resize"
@@ -91,6 +100,7 @@ HTMLWidgets.widget({
         canvas.clear_all();
 
         $side_cust.html(x.sidebar);
+        shiny_input_id = x.callback_id;
 
 
         canvas.set_renderer_colors(
@@ -105,13 +115,29 @@ HTMLWidgets.widget({
             e.mesh_type, e.mesh_name, e.geom_args,
             e.position, e.transform, e.layer,
             mesh_info = function(){
-              $info_pane.html(e.mesh_info);
+              $info_pane.html(e.mesh_info);  // extra_data = e.extra_data
+              if(
+                HTMLWidgets.shinyMode &&
+                Object.keys(e.extra_data).length > 1 &&
+                e.extra_data.text !== undefined
+              ){
+                $info_pane.append('<span> <a href="#" class="threejsr-shiny-callback">'+
+                  e.extra_data.text+
+                  '</a></span>'
+                );
+                // add listener to shiny callbacks
+                $info_pane.find(".threejsr-shiny-callback").click(function(){
+                  threejsr_to_shiny(e.extra_data);
+                });
+              }
             },
             clippers = e.clippers,
             clip_intersect = e.clip_intersect,
             is_clipper = e.is_clipper,
             hover_enabled = e.hover_enabled
           );
+
+
 
 
 

@@ -16,6 +16,7 @@ threejs_scene.default <- function(
   control = 'trackball',
   background_colors = c('#ffffff', '#efefef'),#c('#efefef', '#fefefe'),
   extra_cameras = list(),
+  callback_id = '',
   width = '100%',
   height = '80vh'
 ) {
@@ -62,6 +63,7 @@ threejs_scene.default <- function(
     control_gui= control_gui,
     control = control,
     extra_cameras = extra_cameras,
+    callback_id = callback_id,
     background_colors = t(col2rgb(background_colors)) / 255,
     sidebar = as.character(sidebar)
   )

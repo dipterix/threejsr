@@ -62,6 +62,7 @@ TGeom <- R6::R6Class(
   ),
   public = list(
     mesh_info = '',
+    user_data = list(),
 
     initialize = function(position, mesh_name, mesh_type, mesh_info = mesh_name, ...,
                           layer = 1, .args = list(),
@@ -79,6 +80,10 @@ TGeom <- R6::R6Class(
       private$hover_enabled = hover_enabled
       private$is_clipper = is_clipper
       private$clip_intersect = clip_intersect
+    },
+
+    extra_data = function(text = 'Click Here...', ...){
+      self$user_data = c(list(text = text), list(...))
     },
 
     add_position_control = function( name, axis, label, min = 0, max = 1, initial = 0, step = 0.01, ...){
@@ -230,7 +235,8 @@ TGeom <- R6::R6Class(
         clippers = private$clippers,
         hover_enabled = private$hover_enabled,
         is_clipper = private$is_clipper,
-        clip_intersect = private$clip_intersect
+        clip_intersect = private$clip_intersect,
+        extra_data = self$user_data
       )
     },
     to_json = function(){
