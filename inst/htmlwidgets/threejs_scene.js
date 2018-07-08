@@ -80,7 +80,7 @@ HTMLWidgets.widget({
     var shiny_input_id;
     function threejsr_to_shiny(data){
       if(HTMLWidgets.shinyMode && shiny_input_id !== ''){
-        var re = {...data, '__count': new Date()};
+        var re = {...data, '.__timestamp__.': new Date()};
         Shiny.onInputChange(shiny_input_id, re);
       }
     }
