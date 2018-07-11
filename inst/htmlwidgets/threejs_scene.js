@@ -79,7 +79,10 @@ HTMLWidgets.widget({
     // Add shiny callbacks
     var shiny_input_id;
     function threejsr_to_shiny(data){
-      if(HTMLWidgets.shinyMode && shiny_input_id !== ''){
+      if(HTMLWidgets.shinyMode){
+        if(typeof(shiny_input_id) !== 'string' || shiny_input_id === ''){
+          shiny_input_id = eid + '_callback';
+        }
         var re = {...data, '.__timestamp__.': new Date()};
         Shiny.onInputChange(shiny_input_id, re);
       }
