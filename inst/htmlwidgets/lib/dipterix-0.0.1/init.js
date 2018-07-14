@@ -441,6 +441,10 @@ window.THREEJSRCANVAS = (function(){
       */
 
       geoms.length = 0;  // remove all elements from the array
+      event_stack.hover.length = 0;
+      event_stack.clippers.length = 0;
+      animation_stack.length = 0;
+      sidebar_stack.length = 0;
     }
 
     function add_mesh(mesh_type, mesh_name, geom_args,

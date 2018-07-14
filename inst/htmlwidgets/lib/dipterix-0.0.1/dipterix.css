@@ -33,3 +33,9 @@
   margin-top: 20px;
   padding-top: 15px;
 }
+
+.threejs-scene-control,
+.threejs-scene-customized,
+.threejs-scene-info{
+  width: 245px;
+}

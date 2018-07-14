@@ -45,11 +45,12 @@ HTMLWidgets.widget({
     var __sidebar = `
     <div class="threejs-scene-aside " style="height: ` + height + 'px; margin-bottom: -' + height + `px;">
       <div class="row">
-        <div class="col-sm-9">
+        <div class="col-sm-1">
           <div class="threejs-scene-control hidden"></div>
           <div style="threejs-scene-customized"></div>
           <div class="threejs-scene-info"></div>
         </div>
+        <div class="col-sm-8"> </div>
         <div class="col-sm-3">
           <div style="float:right;">
             <div class="threejs-scene-sidecamera"></div>
