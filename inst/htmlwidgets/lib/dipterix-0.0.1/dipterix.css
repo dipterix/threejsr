@@ -39,3 +39,13 @@
 .threejs-scene-info{
   width: 245px;
 }
+
+.threejs-scene-control .dg .c input[type=text] {
+  line-height: normal;
+}
+
+.threejs-scene-control .dg .c select{
+  color: cornflowerblue;
+}
+
+

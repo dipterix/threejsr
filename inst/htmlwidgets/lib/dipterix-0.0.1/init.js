@@ -164,6 +164,11 @@ window.THREEJSRCANVAS = (function(){
   		controls.handleResize();
   		render();
   	}
+
+  	function reset_controls(){
+  	  controls.trackball.reset();
+  		controls.orbit.reset();
+  	}
   	function switch_controls(on = ['trackball']){
   		controls._active = on;
   		controls.trackball.enabled = false;
@@ -449,6 +454,7 @@ window.THREEJSRCANVAS = (function(){
         'init' : init,
         'resize' : resize,
         'switch_controls' : switch_controls,
+        'reset_controls' : reset_controls,
         'add_mesh' : add_mesh,
         'set_stats' : set_stats,
         'mouse_event' : mouse_event,
@@ -472,8 +478,12 @@ window.THREEJSRCANVAS = (function(){
     }
 
     function set_renderer_colors(main_color, side_color){
-      renderer_colors[0] = main_color;
-      renderer_colors[1] = side_color;
+      if(main_color !== undefined){
+        renderer_colors[0] = main_color;
+      }
+      if(side_color !== undefined){
+        renderer_colors[1] = side_color;
+      }
     }
 
     function clear_all(){

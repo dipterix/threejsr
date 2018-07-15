@@ -276,12 +276,33 @@ HTMLWidgets.widget({
                 gui_folders.Animation.__controllers[i].updateDisplay();
               }
             }
-            console.log(frame);
           }, true);
 
 
 
         }
+
+        // Add miscellaneous items
+
+        if(gui_folders.Miscellaneous === undefined){
+          gui_folders.Miscellaneous = gui.addFolder('Miscellaneous');
+        }
+        gui_folders.Miscellaneous.open();
+
+        gui_folders.Miscellaneous.add({'c' : function(){
+          canvas.reset_controls();
+        }}, 'c').name('Reset Camera');
+
+        gui_folders.Miscellaneous.add({'c' : 'trackball'}, 'c', [ 'trackball', 'orbit' ] ).name('Mouse Control').onChange(function(v){
+          canvas.switch_controls([v]);
+        });
+
+        gui_folders.Miscellaneous.addColor({'c' : '#ffffff'}, 'c').name('Background Color').onChange(function(v){
+          canvas.set_renderer_colors(
+            new THREE.Color(v)
+          );
+        });
+
 
 
         if(x.control_gui && !gui_appended){
