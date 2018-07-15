@@ -32,7 +32,7 @@ window.THREEJSRCANVAS = (function(){
 
 
   function register(id, container, width, height){
-    var innerCanvas, camera, controls, scene, scene2, renderer, side_renderer, renderer_colors, stats, axes_helper, geoms, show_visible, mouse,
+    var innerCanvas, camera, controls, scene, scene2, renderer, side_renderer, renderer_colors, stats, axes_helper, geoms, show_visible, mouse, ani_active, max_keyframe, ani_delta, current_keyframe, ani_callback_f,
         ani_start, fps, event_stack, animation_stack, sidebar_stack;
 
     function set_side_renderer(el){
@@ -73,29 +73,65 @@ window.THREEJSRCANVAS = (function(){
 			view.camera = sub_camera;
 			sidebar_stack[mesh_name] = view;
     }
+
+    function ani_maxkeyframe(max_key){
+      if(typeof(max_key) !== 'number'){
+        max_key = Infinity;
+      }
+      if(max_key <= 0 ){
+        max_key = Infinity;
+      }
+      max_keyframe = max_key;
+    }
+
+    function ani_callback(f, append = false){
+      if(!append){
+        ani_callback_f.length = 0;
+      }
+      ani_callback_f.push(f);
+    }
+
+    function ani_toggle(force){
+      ani_active = !ani_active;
+      if(typeof(force) === 'boolean'){
+        ani_active = force;
+      }
+
+      if(ani_active){
+        ani_start = (new Date()) - ani_delta;
+      }else{
+        ani_delta = (new Date()) - ani_start;
+      }
+    }
+
+    function ani_reset(keyframe = 0){
+      ani_delta = keyframe * 1000 / fps;
+      ani_start = (new Date()) - ani_delta;
+      current_keyframe = keyframe;
+    }
+
     function animate(){
 			requestAnimationFrame( animate );
-
-      /* isAnimation, isLoop, frame, fps;
-      for(var eid in call_stack){
-			  if(call_stack[eid] !== undefined){
-			    call_stack[eid](frame, updateFrequency = fps,
-			    loop = isLoop);
-			  }
-			}
-      if(isAnimation){
-  			frame++;
-      }
-      */
-      // FPS = 20;
-      var __time_elapsed = (new Date()) - ani_start,
-          __frame = __time_elapsed / 1000 * fps;
-
 			controls.update();
 			mouse.update();
+
+
+
+			if(ani_active){
+			  // FPS = 20;
+        var __time_elapsed = (new Date()) - ani_start,
+            __frame = (__time_elapsed / 1000 * fps) % max_keyframe;
+            current_keyframe = __frame;
+			}
+
 			for(var ii in animation_stack){
 			  if(typeof(animation_stack[ii]) === 'function'){
-			    animation_stack[ii](__frame);
+			    animation_stack[ii](current_keyframe);
+			  }
+			}
+			for(var jj in ani_callback_f){
+			  if(typeof(ani_callback_f[jj]) === 'function'){
+			    ani_callback_f[jj](current_keyframe);
 			  }
 			}
 			render();
@@ -180,6 +216,11 @@ window.THREEJSRCANVAS = (function(){
       ani_start = new Date();
       fps = 20;
       animation_stack = [];
+      ani_active = true;
+      max_keyframe = Infinity;
+      ani_delta = 0;
+      current_keyframe = 0;
+      ani_callback_f = [];
 
       // stores subset of geoms
       event_stack = {};
@@ -413,14 +454,20 @@ window.THREEJSRCANVAS = (function(){
         'mouse_event' : mouse_event,
         'mouse' : mouse,
         'mesh_event' : mesh_event,
-        'ani_start' : ani_start,
+        'ani_toggle' : ani_toggle,
+        'ani_reset' : ani_reset,
+        'ani_maxkeyframe' : ani_maxkeyframe,
         'set_fps' : set_fps,
         'clear_all' : clear_all,
         'post_init' : post_init,
         'side_camera' : side_camera,
         'side_renderer' : side_renderer,
         'set_side_renderer' : set_side_renderer,
-        'set_renderer_colors' : set_renderer_colors
+        'set_renderer_colors' : set_renderer_colors,
+        'sidebar_stack' : sidebar_stack,
+        'current_keyframe' : current_keyframe,
+        'ani_callback' : ani_callback,
+        'ani_callback_f' : ani_callback_f
       });
     }
 
@@ -444,7 +491,8 @@ window.THREEJSRCANVAS = (function(){
       event_stack.hover.length = 0;
       event_stack.clippers.length = 0;
       animation_stack.length = 0;
-      sidebar_stack.length = 0;
+      sidebar_stack = {};
+
     }
 
     function add_mesh(mesh_type, mesh_name, geom_args,

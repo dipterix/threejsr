@@ -70,11 +70,6 @@ HTMLWidgets.widget({
         eid = el.id,
         canvas = THREEJSRCANVAS.register(id = eid, el, width, height);
 
-    // Add data gui
-    var gui = new dat.GUI({ autoPlace: false }),
-        gui_folders = {},
-        gui_appended = false;
-
     window.cc = canvas;
 
     // Add shiny callbacks
@@ -96,14 +91,34 @@ HTMLWidgets.widget({
       renderValue: function(x) {
         window.x = x;
 
+        // Add data gui
+        var gui = new dat.GUI({ autoPlace: false }),
+            gui_folders = {},
+            gui_appended = false,
+            max_keyframe = -1;
+
 
 
         if(!HTMLWidgets.shinyMode){
           window.dispatchEvent(new Event('resize'));
         }
-        canvas.clear_all();
 
+        /* Clear previous elements
+        The reason not to init a new canvas (which I think is what r-plotly is doing) is that
+        we don't want to camera to be reset if same data pushed in. If you want to reset camera,
+        I'll implement that later. Right now, you can also use shiny::uiOutput as a wrapper since that
+        uiOutput will refresh everything inside it
+        */
+
+        // Clear canvas and renderers
+        canvas.clear_all();
+        // Clear gui controls
+        $ctrl_pane.html('');
+        // Add sidebars to canvas
         $side_cust.html(x.sidebar);
+        // force change shiny callback
+        // By default callback ID is shinyInputId + '_callback'. However this can be reset
+        // So that you can have multiple callbacks in the runtime.
         shiny_input_id = x.callback_id;
 
 
@@ -186,17 +201,18 @@ HTMLWidgets.widget({
                   event_type = event_type,
                   args = args
                 );
+
+              if(event_type === 'animation' && typeof(args.key_frames) === 'object'){
+                var kf = args.key_frames.map(k => parseFloat(k));
+                kf = kf.filter(k => !isNaN(k));
+                max_keyframe = Math.max(...kf);
+              }
             });
           });
 
 
-          if(x.control_gui && !gui_appended){
-            gui_appended = true;
-            $ctrl_pane.append(gui.domElement);
-            $ctrl_pane.removeClass('hidden');
-          }
-
         });
+
 
         canvas.switch_controls([x.control]);
 
@@ -217,6 +233,68 @@ HTMLWidgets.widget({
 
           canvas.set_side_renderer($side_camr[0]);
         }
+
+
+
+        // Add dat gui
+
+        if(max_keyframe > 0){
+          // Now we have animation event(s)
+          // add animation controllers
+          if(gui_folders.Animation === undefined){
+            gui_folders.Animation= gui.addFolder('Animation');
+          }
+          gui_folders.Animation.open();
+
+          var ani_params = {
+            'Play/Pause' : true,
+            'Reset' : canvas.ani_reset,
+            'Speed' : 0,
+            'Key Frame' : 0
+          };
+
+          canvas.ani_maxkeyframe(max_keyframe);
+
+          gui_folders.Animation.add(ani_params, 'Play/Pause').onChange(function(v){ canvas.ani_toggle(v); });
+          gui_folders.Animation.add(ani_params, 'Reset');
+          gui_folders.Animation.add(ani_params, 'Speed', -1, 2).step(0.01).onChange(function(v){
+            var fps = Math.pow(10, v);
+            canvas.set_fps(fps);
+          });
+          gui_folders.Animation.add(ani_params, 'Key Frame', 0, max_keyframe - 0.1).step(0.1)
+          .onChange(function(v){
+            canvas.ani_reset(v);
+          });
+
+          window.ggg = gui;
+          // Add animation callbacks to update bar
+          canvas.ani_callback(function(frame){
+            ani_params['Key Frame'] = frame;
+            // Iterate over all controllers
+            for (var i in gui_folders.Animation.__controllers) {
+              if(gui_folders.Animation.__controllers[i].property == 'Key Frame'){
+                gui_folders.Animation.__controllers[i].updateDisplay();
+              }
+            }
+            console.log(frame);
+          }, true);
+
+
+
+        }
+
+
+        if(x.control_gui && !gui_appended){
+          gui_appended = true;
+          $ctrl_pane.append(gui.domElement);
+          $ctrl_pane.removeClass('hidden');
+
+        }else if(!x.control_gui){
+          $ctrl_pane.addClass('hidden');
+        }
+
+
+
 
 
       },
