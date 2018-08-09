@@ -168,11 +168,13 @@ window.THREEJSRCANVAS = (function(){
   	function reset_controls(){
   	  controls.trackball.reset();
   		controls.orbit.reset();
+  		controls.orthographic.reset();
   	}
   	function switch_controls(on = ['trackball']){
   		controls._active = on;
   		controls.trackball.enabled = false;
   		controls.orbit.enabled = false;
+  		controls.orthographic.enabled = false;
   		controls[on[0]].enabled = true;
   	}
   	function render(){
@@ -318,21 +320,30 @@ window.THREEJSRCANVAS = (function(){
   		controls.trackball = trackball;
 
   		var orbit = new THREE.OrbitControls( camera, innerCanvas );
-  		orbit.rotateSpeed = 3.0;
+  		orbit.rotateSpeed = 0.3;
   		orbit.zoomSpeed = 1.2;
   		orbit.panSpeed = 0.8;
-  		orbit.noZoom = false;
-  		orbit.noPan = false;
+  		orbit.enableZoom = true;
+  		orbit.enablePan = true;
   		orbit.screenSpacePanning = true;
-  		orbit.staticMoving = true;
-  		orbit.dynamicDampingFactor = 0.3;
+  		orbit.enableDamping = true;
+  		orbit.dampingFactor = 0.3;
   		orbit.enableKeys = false;
+  		orbit.maxPolarAngle = Infinity;
+  		orbit.minPolarAngle = -Infinity;
   		// orbit.addEventListener( 'change', render );
   		orbit.enabled = false;
   		controls.orbit = orbit;
 
+  		var orthographic = new THREE.OrthographicTrackballControls( camera, innerCanvas );
+  		orthographic.zoomSpeed = 0.02;
+  		orthographic.noPan = true;
+  		orthographic.dynamicDampingFactor=0.5;
+  		controls.orthographic = orthographic;
+
   		controls.handleResize = function(){
   		  controls.trackball.handleResize();
+  		  controls.orthographic.handleResize();
   		  // controls.orbit.handleResize();
   		};
 

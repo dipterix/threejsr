@@ -293,7 +293,7 @@ HTMLWidgets.widget({
           canvas.reset_controls();
         }}, 'c').name('Reset Camera');
 
-        gui_folders.Miscellaneous.add({'c' : 'trackball'}, 'c', [ 'trackball', 'orbit' ] ).name('Mouse Control').onChange(function(v){
+        gui_folders.Miscellaneous.add({'c' : 'trackball'}, 'c', [ 'trackball', 'orbit', 'orthographic' ] ).name('Mouse Control').onChange(function(v){
           canvas.switch_controls([v]);
         });
 

@@ -20,6 +20,8 @@ dependencies:
       - js/libs/dat.gui.min.js
       - js/loaders/GLTFLoader.js
       - js/controls/OrbitControls.js
+      - js/controls/OrthographicTrackballControls.js
+      - js/controls/PointerLockControls.js
   - name: dipterix
     version: 0.0.1
     src: htmlwidgets/lib/dipterix-0.0.1

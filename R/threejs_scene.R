@@ -13,7 +13,7 @@ threejs_scene.default <- function(
   show_stats = F,
   fps = 20,
   control_gui = T,
-  control = 'trackball',
+  control = 'orthographic',
   background_colors = c('#ffffff', '#efefef'),#c('#efefef', '#fefefe'),
   extra_cameras = list(),
   callback_id = '',
