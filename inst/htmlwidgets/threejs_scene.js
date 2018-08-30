@@ -43,11 +43,11 @@ HTMLWidgets.widget({
         $side_pane;
 
     var __sidebar = `
-    <div class="threejs-scene-aside " style="height: ` + height + 'px; margin-bottom: -' + height + `px;">
+    <div class="threejs-scene-aside " style="height: ` + height + 'px; margin-bottom: -' + height + `px; width:` + width + `px;">
       <div class="row">
         <div class="col-sm-1">
           <div class="threejs-scene-control hidden"></div>
-          <div style="threejs-scene-customized"></div>
+          <div class="threejs-scene-customized"></div>
           <div class="threejs-scene-info"></div>
         </div>
         <div class="col-sm-8"> </div>
@@ -84,6 +84,18 @@ HTMLWidgets.widget({
       }
     }
 
+    // force resize
+    function resize_ui(width, height){
+      if($side_pane !== null){
+          $side_pane.height(height);
+          $side_pane.width(width);
+          $side_pane.css({
+            'margin-bottom': '-' + height + 'px'
+          });
+        }
+
+        canvas.resize(width, height);
+    }
 
     return {
       // "find", "renderError", "clearError", "sizing", "name", "type", "initialize", "renderValue", "resize"
@@ -314,22 +326,13 @@ HTMLWidgets.widget({
           $ctrl_pane.addClass('hidden');
         }
 
-
-
+        // Resize
+        resize_ui(width, height);
 
 
       },
 
-      resize: function(width, height) {
-        if($side_pane !== null){
-          $side_pane.height(height);
-          $side_pane.css({
-            'margin-bottom': '-' + height + 'px'
-          });
-        }
-
-        canvas.resize(width, height);
-      },
+      resize: resize_ui,
 
       s: this
     };

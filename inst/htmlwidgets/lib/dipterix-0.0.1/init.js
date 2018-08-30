@@ -137,6 +137,9 @@ window.THREEJSRCANVAS = (function(){
 			render();
 		}
     function resize(width, height){
+      // Resize innerCanvas as well
+      innerCanvas.style.width = width + 'px';
+
       if(camera.isOrthographicCamera || false){
         camera.left = width / - 2;
     	  camera.right = width / 2;
@@ -244,7 +247,7 @@ window.THREEJSRCANVAS = (function(){
 
       // Main canvas for 3D objects
       innerCanvas = document.createElement('div');
-      innerCanvas.style.width = '100%';
+      innerCanvas.style.width = width + 'px';
 
 
       // Camera
