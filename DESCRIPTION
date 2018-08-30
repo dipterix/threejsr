@@ -2,7 +2,7 @@
 Package: threejsr
 Type: Package
 Title: Htmlwidgets that brings THREEJS to R
-Version: 0.1.10
+Version: 0.1.11
 Author: Zhengjia Wang
 Maintainer: Zhengjia Wang <dipterix.wang@gmail.com>
 Description: THREEJS (https://threejs.org/) is a powerful JavaScript 3D visualization 
