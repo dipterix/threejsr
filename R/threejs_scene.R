@@ -52,8 +52,8 @@ threejs_scene.default <- function(
     sidebar = NULL
   }
 
-  if(length(control) != 1 || !control %in% c('orbit', 'trackball')){
-    control = 'trackball'
+  if(length(control) != 1 || !control %in% c('orbit', 'trackball', 'orthographic')){
+    control = 'orthographic'
   }
 
   elements = list(
