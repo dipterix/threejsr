@@ -1,5 +1,55 @@
 window.THREEJSRGEOMS = (function(){
 
+  function _get_color(col1, col2, a, b){
+    if(col1 === undefined && col2 === undefined){
+      return(null);
+    }
+
+    if(col1 === undefined){
+      col1 = col2;
+      a = b = 0.5;
+    }
+
+    if(col2 === undefined){
+      col2 = col1;
+      a = b = 0.5;
+    }
+
+    a = a / (a + b);
+    b = 1-a;
+
+    var re = new Array(col1.length), ic;
+
+    for(ic = 0; ic < col1.length; ic++){
+      re[ic] = col1[ic] * a + col2[ic] * b;
+    }
+
+
+    return(re);
+  }
+
+  function _pad_color(tmp, dpp){
+    var c;
+    switch (dpp) {
+        case '1':
+          tmp = tmp[0];
+          c = [tmp,tmp,tmp,tmp];
+          break;
+
+        case '2':
+          c = [tmp[0],tmp[0],tmp[0],tmp[1]];
+          break;
+
+        case '3':
+          c = [tmp[0],tmp[1],tmp[2],1];
+          break;
+
+        default:
+          c = [tmp[0],tmp[1],tmp[2],tmp[3]];
+      }
+    return(c);
+  }
+
   function freemesh(init_args){
     var g = new THREE.BufferGeometry();
 
@@ -9,7 +59,6 @@ window.THREEJSRGEOMS = (function(){
 		g.addAttribute( 'normal', new THREE.Float32BufferAttribute( init_args.normals, 3 ) );
 		g.addAttribute( 'color', new THREE.Float32BufferAttribute( init_args.colors, 3 ) );
 		g.computeVertexNormals();
-		window.gg =g;
 
     // Tricky here, customized data will be textured for each vertices
     var __mesh,
@@ -118,49 +167,10 @@ window.THREEJSRGEOMS = (function(){
           threshold = __mesh.userData.texture_threshold || 0,
           alpha = __mesh.userData.texture_alpha || false,
           dpp = String(parseInt(__data_point_pixel));
-      if(col === undefined && col_2 === undefined){
-        return(null);
-      }
 
-      if(col === undefined){
-        col = col_2;
-        a = b = 0.5;
-      }
 
-      if(col_2 === undefined){
-        col_2 = col;
-        a = b = 0.5;
-      }
-
-      var tmp;
-      switch (dpp) {
-        case '1':
-          tmp = col[0] * a + col_2[0] * b;
-          c = [tmp,tmp,tmp,tmp];
-          break;
-
-        case '2':
-          tmp = col[0] * a + col_2[0] * b;
-          c = [tmp,tmp,tmp,col[1] * a + col_2[1] * b];
-          break;
-
-        case '3':
-          c = [
-            col[0] * a + col_2[0] * b,
-            col[1] * a + col_2[1] * b,
-            col[2] * a + col_2[2] * b,
-            1,
-          ];
-          break;
-
-        default:
-          c = [
-            col[0] * a + col_2[0] * b,
-            col[1] * a + col_2[1] * b,
-            col[2] * a + col_2[2] * b,
-            col[3] * a + col_2[3] * b,
-          ];
-      }
+      var tmp = _get_color(col, col_2, a, b);
+      c = _pad_color(tmp, dpp);
 
       if(!alpha){
         c[3] = 1;
@@ -329,8 +339,69 @@ window.THREEJSRGEOMS = (function(){
     });
   }
 
+  function linesegment(init_args){
+    /*
+    init_args:
+    vertices: position of each dots
+    indices: sequence of segments starting from 0
+    **/
+    var g = new THREE.BufferGeometry();
+
+    var position = new Float32Array(init_args.vertices);
+
+
+    g.setIndex( init_args.faces );
+    g.addAttribute( 'position', new THREE.BufferAttribute( position, 3 ) );
+    g.setIndex(new THREE.BufferAttribute(new Uint16Array(init_args.indices), 1));
+		// g.addAttribute( 'normal', new THREE.Float32BufferAttribute( init_args.normals, 3 ) );
+		// g.addAttribute( 'color', new THREE.Float32BufferAttribute( init_args.colors, 3 ) );
+		// g.computeVertexNormals();
+		// window.gg =g;
+
+    // Tricky here, customized data will be textured for each vertices
+    var __mesh,
+        __dat,
+        __lineTexture;
+    var set_data_texture = function( mesh, data, pixel_size = 3, max_anisotropy = 1 ){
+      /*
+      We don't set texture to customized mesh data. Instead, we set vertex colors
+      also the last two args are ignored
+      */
+      __lineTexture = new THREE.LineBasicMaterial({
+        color: 0xff0000
+      });
+
+			__mesh = mesh;
+			__dat = data;
+
+			mesh.material = __lineTexture;
+			return(null);
+    };
+
+    var update_data_texture = function( key, key_2, a, b, update_texture = true ){
+      var col = _get_color(__dat[key],  __dat[key_2], a, b);
+
+      col = _pad_color(col, 3);
+
+      __lineTexture.color.setRGB(col[0], col[1], col[2]);
+
+      if(update_texture){
+        __lineTexture.needsUpdate=true;
+      }
+
+    };
+
+    return({
+      'geom' : g,
+      'set_data_texture' : set_data_texture,
+      'update_data_texture' : update_data_texture
+    });
+  }
+
+
 
   return({
+    'linesegment' : linesegment,
     'sphere' : sphere,
     'plane' : plane,
     'freemesh' : freemesh

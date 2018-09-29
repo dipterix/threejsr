@@ -141,10 +141,10 @@ window.THREEJSRCANVAS = (function(){
       innerCanvas.style.width = width + 'px';
 
       if(camera.isOrthographicCamera || false){
-        camera.left = width / - 2;
-    	  camera.right = width / 2;
-    	  camera.top = height / 2;
-    	  camera.bottom = height / - 2;
+        camera.left = -150;
+    	  camera.right = 150;
+    	  camera.top = height / width * 150;
+    	  camera.bottom = -height / width * 150;
       }else{
   	    camera.aspect = width / height;
       }
@@ -180,6 +180,13 @@ window.THREEJSRCANVAS = (function(){
   		controls.orthographic.enabled = false;
   		controls[on[0]].enabled = true;
   	}
+
+  	function set_controls_target( x, y, z ){
+  	  controls.trackball.target.set( x , y , z );
+  		controls.orbit.target.set( x , y , z );
+  		controls.orthographic.target.set( x , y , z );
+  	}
+
   	function render(){
 
   	  renderer.setClearColor( renderer_colors[0] );
@@ -251,8 +258,8 @@ window.THREEJSRCANVAS = (function(){
 
 
       // Camera
-      camera = new THREE.PerspectiveCamera( 45, width / height, 1, 10000 );
-      // camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 10000 );
+      // camera = new THREE.PerspectiveCamera( 45, width / height, 1, 10000 );
+      camera = new THREE.OrthographicCamera( -150, 150, height / width * 150, -height / width * 150, 1, 1000 );
   		camera.position.z = 500;
   		camera.layers.enable(0);
   		camera.layers.enable(1);
@@ -340,7 +347,10 @@ window.THREEJSRCANVAS = (function(){
 
   		var orthographic = new THREE.OrthographicTrackballControls( camera, innerCanvas );
   		orthographic.zoomSpeed = 0.02;
-  		orthographic.noPan = true;
+  		// You cannot use pan in perspective camera. So if you are using PerspectiveCamera, this needs to be true
+  		orthographic.noPan = false;
+  		// Initial radius is 500
+  		// orthographic.radius = 300;
   		orthographic.dynamicDampingFactor=0.5;
   		controls.orthographic = orthographic;
 
@@ -469,6 +479,7 @@ window.THREEJSRCANVAS = (function(){
         'resize' : resize,
         'switch_controls' : switch_controls,
         'reset_controls' : reset_controls,
+        'set_controls_target' : set_controls_target,
         'add_mesh' : add_mesh,
         'set_stats' : set_stats,
         'mouse_event' : mouse_event,
@@ -525,7 +536,8 @@ window.THREEJSRCANVAS = (function(){
                       clippers = null,
                       clip_intersect = false,
                       is_clipper = false,
-                      hover_enabled = true){
+                      hover_enabled = true,
+                      threejs_method = 'Mesh'){
       var geom_func = THREEJSRGEOMS[mesh_type],
           mesh_obj,
           geom_obj;
@@ -547,7 +559,10 @@ window.THREEJSRCANVAS = (function(){
           geom_obj.geom.applyMatrix(mat);
         }
 
-        mesh_obj = new THREE.Mesh( geom_obj.geom , new THREE.MeshLambertMaterial({ 'transparent' : true }) );
+        mesh_obj = new THREE[threejs_method](
+          geom_obj.geom ,
+          new THREE.MeshLambertMaterial({ 'transparent' : true })
+        );
         window.mm = mesh_obj;
         mesh_obj.userData.__params = {};
         mesh_obj.userData.__funs = {};
@@ -732,10 +747,6 @@ window.THREEJSRCANVAS = (function(){
         mouse.events[et] = undefined;
       }
     }
-
-
-
-
 
 
 

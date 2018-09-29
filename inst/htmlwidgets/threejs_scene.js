@@ -109,6 +109,8 @@ HTMLWidgets.widget({
             gui_appended = false,
             max_keyframe = -1;
 
+        window.ggg = gui;
+
 
 
         if(!HTMLWidgets.shinyMode){
@@ -139,9 +141,45 @@ HTMLWidgets.widget({
           new THREE.Color().fromArray(x.background_colors[1])
         );
 
+        var mct = x.mouse_control_target;
+        canvas.set_controls_target(mct[0], mct[1], mct[2]);
+
 
         x.geoms.forEach(function(e){
           e = JSON.parse(e);
+          var has_hook = false;
+          if(typeof(e.hook_to) === 'object' && (e.hook_to.length === undefined || e.hook_to.length == 3)){
+            if(e.hook_to.length === undefined && e.hook_to.target_name !== undefined){
+              // hook is a dict which needs to look up
+                var __hook_obj = canvas.scene.getObjectByName(e.hook_to.target_name),
+                    __pos = __hook_obj.geometry.getAttribute('position'),
+                    __which_ind = e.hook_to.which_vertex;
+
+                e.hook_to = [
+                  __pos.array[__which_ind * 3 - 3],
+                  __pos.array[__which_ind * 3 - 2],
+                  __pos.array[__which_ind * 3 - 1]
+                ];
+                has_hook = true;
+            }else if(e.hook_to.length == 3){
+              has_hook = true;
+            }
+            if(has_hook){
+              var hook = canvas.add_mesh(
+                mesh_type = 'linesegment', mesh_name = e.mesh_name + '_hook',
+                geom_args = {
+                  // One single line of hook
+                  'vertices' : [e.position[0], e.position[1], e.position[2], e.hook_to[0], e.hook_to[1], e.hook_to[2]],
+                  'indices' : [0, 1]
+                }, position = [0,0,0], transform = e.transform , layer = 1, mesh_info = '', clippers = null,
+                clip_intersect = false, is_clipper = false, hover_enabled = false,
+                threejs_method = 'LineSegments'
+              );
+              hook.userData.set_data_texture(hook, data = [[0, 0, 1], [1, 0, 0]]);
+              hook.userData.update_data_texture(0, 1, 0, 1);
+            }
+          }
+
           var mesh = canvas.add_mesh(
             e.mesh_type, e.mesh_name, e.geom_args,
             e.position, e.transform, e.layer,
@@ -191,13 +229,25 @@ HTMLWidgets.widget({
                 mesh.userData.__funs[p.name](p.initial, mesh);
               }
 
-              gui_folders[folder_name].add(
+              if(p.step === undefined){
+                gui_folders[folder_name].add(
+                  p.__values, p.label
+                ).onChange(function(value) {
+                  if(typeof(mesh.userData.__funs[p.name]) === 'function'){
+                    mesh.userData.__funs[p.name](value, mesh = mesh);
+                  }
+                });
+              }else{
+                gui_folders[folder_name].add(
                   p.__values, p.label, p.min, p.max
                 ).step(p.step).onChange(function(value) {
                   if(typeof(mesh.userData.__funs[p.name]) === 'function'){
                     mesh.userData.__funs[p.name](value, mesh = mesh);
                   }
                 });
+              }
+
+
 
             });
 
@@ -278,7 +328,7 @@ HTMLWidgets.widget({
             canvas.ani_reset(v);
           });
 
-          window.ggg = gui;
+
           // Add animation callbacks to update bar
           canvas.ani_callback(function(frame){
             ani_params['Key Frame'] = frame;
@@ -305,7 +355,7 @@ HTMLWidgets.widget({
           canvas.reset_controls();
         }}, 'c').name('Reset Camera');
 
-        gui_folders.Miscellaneous.add({'c' : 'trackball'}, 'c', [ 'trackball', 'orbit', 'orthographic' ] ).name('Mouse Control').onChange(function(v){
+        gui_folders.Miscellaneous.add({'c' : 'orthographic'}, 'c', [ 'trackball', 'orbit', 'orthographic' ] ).name('Mouse Control').onChange(function(v){
           canvas.switch_controls([v]);
         });
 
@@ -318,6 +368,9 @@ HTMLWidgets.widget({
 
 
         if(x.control_gui && !gui_appended){
+          if(x.control_collapsed || false){
+            gui.close();
+          }
           gui_appended = true;
           $ctrl_pane.append(gui.domElement);
           $ctrl_pane.removeClass('hidden');

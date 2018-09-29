@@ -58,7 +58,8 @@ TGeom <- R6::R6Class(
     clippers = NULL,
     is_clipper = F,
     hover_enabled = T,
-    clip_intersect = FALSE
+    clip_intersect = FALSE,
+    hook_to = NULL
   ),
   public = list(
     mesh_info = '',
@@ -100,27 +101,48 @@ TGeom <- R6::R6Class(
       )
     },
 
-    add_numeric_control = function( type = 'Custom', name, label, min = 0, max = 1, initial = 0, step = 0.01, ...){
+    add_custom_control = function( type = 'Custome', label, l){
       if(!is.list(private$controls[[type]])){
         private$controls[[type]] = list()
       }
-      l = list(
-        c(
-          list(...),
-          list(
-            initial = initial,
-            label = label,
-            name = name,
-            min = min,
-            max = max,
-            step = step
-          )
-        )
-      )
+      if(!missing(label)){
+        l[['label']] = label
+      }else{
+        label = l[['label']]
+      }
+      l = list(l)
       names(l) = label
       private$controls[[type]][length(private$controls[[type]]) + 1] = l
-
     },
+
+    add_numeric_control = function( type = 'Custom', name, label, min = 0, max = 1, initial = 0, step = 0.01, ...){
+      l = c(
+        list(...),
+        list(
+          initial = initial,
+          label = label,
+          name = name,
+          min = min,
+          max = max,
+          step = step
+        )
+      )
+      self$add_custom_control(type = type, l = l )
+    },
+
+    add_visibility_control = function( type = 'Custom', name, label, initial = TRUE, ...){
+      l = c(
+        list(...),
+        list(
+          initial = initial,
+          label = label,
+          name = name,
+          callback = 'function(value, mesh){mesh.visible=value;}'
+        )
+      )
+      self$add_custom_control(type = type, l = l )
+    },
+
 
     add_event = function(event_type, name, event_data, key_frames, ...){
       re = private$check_event_data(event_data = event_data, key_frames = key_frames)
@@ -220,6 +242,13 @@ TGeom <- R6::R6Class(
       }
       private$transform = mat
     },
+    set_hook = function(hook_to){
+      if(!missing(hook_to)){
+        private$hook_to = hook_to
+      }else{
+        private$hook_to = NULL
+      }
+    },
 
     to_list = function(){
       list(
@@ -236,7 +265,8 @@ TGeom <- R6::R6Class(
         hover_enabled = private$hover_enabled,
         is_clipper = private$is_clipper,
         clip_intersect = private$clip_intersect,
-        extra_data = self$user_data
+        extra_data = self$user_data,
+        hook_to = private$hook_to
       )
     },
     to_json = function(){

@@ -4,7 +4,8 @@
 \alias{as_data_uri}
 \title{File or any R objects to Data URI, base64 encoded}
 \usage{
-as_data_uri(obj, mime = "text/plain;charset=US-ASCII", is_file = FALSE, ...)
+as_data_uri(obj, mime = "text/plain;charset=US-ASCII", is_file = FALSE,
+  ...)
 }
 \description{
 File or any R objects to Data URI, base64 encoded

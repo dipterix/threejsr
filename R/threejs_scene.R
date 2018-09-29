@@ -13,6 +13,9 @@ threejs_scene.default <- function(
   show_stats = F,
   fps = 20,
   control_gui = T,
+  control_collapsed = T,
+  mouse_control = 'orthographic',
+  mouse_control_target = c(0,0,0),
   control = 'orthographic',
   background_colors = c('#ffffff', '#efefef'),#c('#efefef', '#fefefe'),
   extra_cameras = list(),
@@ -20,6 +23,7 @@ threejs_scene.default <- function(
   width = '100%',
   height = '80vh'
 ) {
+  control = mouse_control
 
   assertthat::assert_that(length(background_colors) == 2, msg = 'background_colors MUST be a length of 2 color vector, example: c("#efefef", "#fefefe")')
 
@@ -61,7 +65,9 @@ threejs_scene.default <- function(
     fps = fps,
     geoms = elements,
     control_gui= control_gui,
+    control_collapsed = control_collapsed,
     control = control,
+    mouse_control_target = mouse_control_target,
     extra_cameras = extra_cameras,
     callback_id = callback_id,
     background_colors = t(col2rgb(background_colors)) / 255,
