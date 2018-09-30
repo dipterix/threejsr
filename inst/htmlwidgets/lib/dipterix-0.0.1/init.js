@@ -169,9 +169,12 @@ window.THREEJSRCANVAS = (function(){
   	}
 
   	function reset_controls(){
+  	  // reset will erase target, manually reset target
+  	  var target = controls.orthographic.target.toArray();
   	  controls.trackball.reset();
   		controls.orbit.reset();
   		controls.orthographic.reset();
+  		set_controls_target(target[0], target[1], target[2]);
   	}
   	function switch_controls(on = ['trackball']){
   		controls._active = on;
