@@ -350,7 +350,7 @@ window.THREEJSRCANVAS = (function(){
   		// You cannot use pan in perspective camera. So if you are using PerspectiveCamera, this needs to be true
   		orthographic.noPan = false;
   		// Initial radius is 500
-  		// orthographic.radius = 300;
+  		// orthographic.radius = 400;
   		orthographic.dynamicDampingFactor=0.5;
   		controls.orthographic = orthographic;
 

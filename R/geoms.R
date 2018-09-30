@@ -87,7 +87,7 @@ TGeom <- R6::R6Class(
       self$user_data = c(list(text = text), list(...))
     },
 
-    add_position_control = function( name, axis, label, min = 0, max = 1, initial = 0, step = 0.01, ...){
+    add_position_control = function( name, axis, label, min = 0, max = 1, initial = 0, step = 0.01, ..., index = NULL){
       self$add_numeric_control(
         type = 'Position',
         name = name,
@@ -97,11 +97,16 @@ TGeom <- R6::R6Class(
         max = max,
         initial = initial,
         step = step,
-        ...
+        ...,
+        index = index
       )
     },
 
-    add_custom_control = function( type = 'Custome', label, l){
+    # Type is dat GUI folder name
+    # label is this iterm name
+    # l should be a list of initial, label, name, callback.... to match with dat GUI
+    # index is the index of control, can avoid duplicated assignment
+    add_custom_control = function( type = 'Custome', label, l, index = NULL){
       if(!is.list(private$controls[[type]])){
         private$controls[[type]] = list()
       }
@@ -112,10 +117,14 @@ TGeom <- R6::R6Class(
       }
       l = list(l)
       names(l) = label
-      private$controls[[type]][length(private$controls[[type]]) + 1] = l
+
+      if(is.null(index)){
+        index = length(private$controls[[type]]) + 1
+      }
+      private$controls[[type]][index] = l
     },
 
-    add_numeric_control = function( type = 'Custom', name, label, min = 0, max = 1, initial = 0, step = 0.01, ...){
+    add_numeric_control = function( type = 'Custom', name, label, min = 0, max = 1, initial = 0, step = 0.01, ..., index = NULL){
       l = c(
         list(...),
         list(
@@ -127,10 +136,10 @@ TGeom <- R6::R6Class(
           step = step
         )
       )
-      self$add_custom_control(type = type, l = l )
+      self$add_custom_control(type = type, l = l, index = index )
     },
 
-    add_visibility_control = function( type = 'Custom', name, label, initial = TRUE, ...){
+    add_visibility_control = function( type = 'Custom', name, label, initial = TRUE, ..., index = NULL){
       l = c(
         list(...),
         list(
@@ -140,9 +149,19 @@ TGeom <- R6::R6Class(
           callback = 'function(value, mesh){mesh.visible=value;}'
         )
       )
-      self$add_custom_control(type = type, l = l )
+      self$add_custom_control(type = type, l = l, index = index )
     },
 
+    remove_event = function(event_type, name){
+      if(!is.null(private$events[[event_type]])){
+        for(ii in seq_along(private$events[[event_type]])){
+          n = private$events[[event_type]][[ii]][['name']]
+          if(length(n) && n == name){
+            private$events[[event_type]][[ii]] = NULL
+          }
+        }
+      }
+    },
 
     add_event = function(event_type, name, event_data, key_frames, ...){
       re = private$check_event_data(event_data = event_data, key_frames = key_frames)
