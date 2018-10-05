@@ -41,6 +41,16 @@ GeomFreeMesh <- R6::R6Class(
 
     },
 
+    get_vertex_position = function(idx, start_from = 0){
+      private$vertices[(idx - start_from) * 3 + 1:3]
+    },
+
+    get_face = function(face_id, start_from = 1){
+      vid = private$faces[(face_id - start_from) * 3 + 1:3]
+      # TODO get positions and area of this face
+      vid
+    },
+
     to_list = function(){
       re = super$to_list()
       re$geom_args = list(
