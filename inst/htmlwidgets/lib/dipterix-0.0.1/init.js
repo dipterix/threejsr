@@ -152,7 +152,7 @@ window.THREEJSRCANVAS = (function(){
       // sub cameras
       var names = Object.keys(sidebar_stack);
       if(names.length > 0){
-        var side_width = Math.min(250, height / (names.length + 1));
+        var side_width = height / Math.max(names.length, 2);
         // side_renderer.setSize(side_width, names.length * side_width);
         for(var ii in names){
           sidebar_stack[names[ii]].camera.left = side_width / -2;
@@ -200,7 +200,7 @@ window.THREEJSRCANVAS = (function(){
 
       var names = Object.keys(sidebar_stack);
       if(names.length > 0){
-        var width = Math.min(250, height / (names.length + 1));
+        var width = height / Math.max(names.length, 2);
         side_renderer.setSize(width, names.length * width);
         side_renderer.setClearColor( renderer_colors[1] );
         for(var ii in names){
@@ -409,14 +409,20 @@ window.THREEJSRCANVAS = (function(){
           }
         },
         'show_info' : function(items, status){
-          if(status.isDown && items.length > 0){
+          if(status.isClicked && items.length > 0){
             var obj = items[0].object,
                 is_mesh = obj.isMesh || false;
-            if(is_mesh && typeof(obj.userData.mesh_info) === 'function'){
-              obj.userData.mesh_info();
+            if(is_mesh){
+              if(typeof(obj.userData.mesh_info) === 'function'){
+                obj.userData.mesh_info();
+              }
+              if(typeof(obj.userData.mouse_callback) === 'function'){
+                obj.userData.mouse_callback();
+              }
             }
 
           }
+          mouse.__stats.isClicked = false;
         }
       };
 
@@ -699,6 +705,9 @@ window.THREEJSRCANVAS = (function(){
             case 'position':
               var axis = param.axis || 'z';
               e.userData.__funs[args.name] = function(value, mesh){    // mesh is used since e = mesh
+                if(mesh === undefined){
+                  mesh = e;
+                }
                 var pos = mesh.position,
                     loc = find_keys(value);
 

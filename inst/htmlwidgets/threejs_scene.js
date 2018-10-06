@@ -225,29 +225,39 @@ HTMLWidgets.widget({
               p.__values[p.label] = p.initial;
 
               if(typeof(p.callback) === 'string'){
-                mesh.userData.__funs[p.name] = eval('var __tmp='+p.callback+';__tmp;');
-                mesh.userData.__funs[p.name](p.initial, mesh);
+                mesh.userData.__funs[p.name] = function(value, mesh = mesh){
+                  eval('var __tmp='+p.callback+';');
+                  __tmp(value, mesh);
+                };
+                mesh.userData.__funs[p.name](p.initial, mesh = mesh);
               }
 
-              if(p.step === undefined){
-                gui_folders[folder_name].add(
-                  p.__values, p.label
-                ).onChange(function(value) {
-                  if(typeof(mesh.userData.__funs[p.name]) === 'function'){
-                    mesh.userData.__funs[p.name](value, mesh = mesh);
-                  }
-                });
+              if(p.hidden === undefined || p.hidden === false){
+                if(p.step === undefined){
+                  gui_folders[folder_name].add(
+                    p.__values, p.label
+                  ).onChange(function(value) {
+                    if(typeof(mesh.userData.__funs[p.name]) === 'function'){
+                      mesh.userData.__funs[p.name](value, mesh = mesh);
+                    }
+                  });
+                }else{
+                  gui_folders[folder_name].add(
+                    p.__values, p.label, p.min, p.max
+                  ).step(p.step).onChange(function(value) {
+                    if(typeof(mesh.userData.__funs[p.name]) === 'function'){
+                      mesh.userData.__funs[p.name](value, mesh = mesh);
+                    }
+                  });
+                }
               }else{
-                gui_folders[folder_name].add(
-                  p.__values, p.label, p.min, p.max
-                ).step(p.step).onChange(function(value) {
-                  if(typeof(mesh.userData.__funs[p.name]) === 'function'){
-                    mesh.userData.__funs[p.name](value, mesh = mesh);
-                  }
-                });
+                if(p.mouse_event || false){
+                  // This is a mouse callback!
+                  mesh.userData.mouse_callback = function(){
+                    mesh.userData.__funs[p.name](value = mesh.position, mesh = mesh);
+                  };
+                }
               }
-
-
 
             });
 
