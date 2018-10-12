@@ -226,8 +226,11 @@ HTMLWidgets.widget({
 
               if(typeof(p.callback) === 'string'){
                 mesh.userData.__funs[p.name] = function(value, mesh = mesh){
-                  eval('var __tmp='+p.callback+';');
-                  __tmp(value, mesh);
+                  try {
+                    eval('var __tmp='+p.callback+';');
+                    __tmp(value, mesh);
+                  } catch (e) {
+                  }
                 };
                 mesh.userData.__funs[p.name](p.initial, mesh = mesh);
               }
