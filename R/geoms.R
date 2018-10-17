@@ -83,6 +83,13 @@ TGeom <- R6::R6Class(
       private$clip_intersect = clip_intersect
     },
 
+    set_name = function(label){
+      if(length(label) != 1 || !is.character(label)){
+        stop('Mesh name must be a string')
+      }
+      private$mesh_name = label
+    },
+
     extra_data = function(text = 'Click Here...', ...){
       self$user_data = c(list(text = text), list(...))
     },

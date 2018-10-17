@@ -40,6 +40,12 @@ GeomSphere <- R6::R6Class(
       return(self)
     },
 
+    set_radius = function(radius){
+      assertthat::assert_that(length(radius) == 1 && is.numeric(radius) && radius > 0, msg = 'radius must be positive number')
+      radius = max(radius, 0)
+      private$radius = radius
+    },
+
     to_list = function(){
       re = super$to_list()
       re$geom_args = list(

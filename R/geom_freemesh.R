@@ -41,6 +41,16 @@ GeomFreeMesh <- R6::R6Class(
 
     },
 
+    get_data = function(name = 'vertices', reshape = F){
+      assertthat::assert_that(name %in% c('vertices', 'faces'), msg = 'name must be "vertices" or "faces"')
+      re = private[[name]]
+      if(reshape){
+        dim(re) = c(3, length(re) / 3)
+      }
+      re
+    },
+
+
     get_vertex_position = function(idx, start_from = 0){
       private$vertices[(idx - start_from) * 3 + 1:3]
     },
