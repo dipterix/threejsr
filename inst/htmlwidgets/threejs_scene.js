@@ -151,16 +151,21 @@ HTMLWidgets.widget({
           if(typeof(e.hook_to) === 'object' && (e.hook_to.length === undefined || e.hook_to.length == 3)){
             if(e.hook_to.length === undefined && e.hook_to.target_name !== undefined){
               // hook is a dict which needs to look up
-                var __hook_obj = canvas.scene.getObjectByName(e.hook_to.target_name),
-                    __pos = __hook_obj.geometry.getAttribute('position'),
-                    __which_ind = e.hook_to.which_vertex;
+                var __hook_obj = canvas.scene.getObjectByName(e.hook_to.target_name);
+                if(__hook_obj === undefined){
+                  // __hook_obj doesn't exist
+                  has_hook = false;
+                }else{
+                  var __pos = __hook_obj.geometry.getAttribute('position'),
+                      __which_ind = e.hook_to.which_vertex;
 
-                e.hook_to = [
-                  __pos.array[__which_ind * 3 - 3],
-                  __pos.array[__which_ind * 3 - 2],
-                  __pos.array[__which_ind * 3 - 1]
-                ];
-                has_hook = true;
+                  e.hook_to = [
+                    __pos.array[__which_ind * 3 - 3],
+                    __pos.array[__which_ind * 3 - 2],
+                    __pos.array[__which_ind * 3 - 1]
+                  ];
+                  has_hook = true;
+                }
             }else if(e.hook_to.length == 3){
               has_hook = true;
             }
@@ -212,8 +217,14 @@ HTMLWidgets.widget({
 
           // Add control UIs
           Object.keys(e.controls).forEach(function(folder_name){
+
+            // If is animation, check if we really need to show control gui
+            if(!(x.control_animation || false) && folder_name == 'Animation'){
+              return(undefined);
+            }
+
             var params = e.controls[folder_name];
-            if(gui_folders[folder_name] === undefined){
+            if(gui_folders[folder_name] === undefined && folder_name !== 'hidden'){
               gui_folders[folder_name] = gui.addFolder(folder_name);
               gui_folders[folder_name].open();
             }
@@ -316,44 +327,46 @@ HTMLWidgets.widget({
         if(max_keyframe > 0){
           // Now we have animation event(s)
           // add animation controllers
-          if(gui_folders.Animation === undefined){
+          if(gui_folders.Animation === undefined && (x.control_animation || false)){
             gui_folders.Animation= gui.addFolder('Animation');
           }
-          gui_folders.Animation.open();
-
-          var ani_params = {
-            'Play/Pause' : true,
-            'Reset' : canvas.ani_reset,
-            'Speed' : 0,
-            'Key Frame' : 0
-          };
 
           canvas.ani_maxkeyframe(max_keyframe);
 
-          gui_folders.Animation.add(ani_params, 'Play/Pause').onChange(function(v){ canvas.ani_toggle(v); });
-          gui_folders.Animation.add(ani_params, 'Reset');
-          gui_folders.Animation.add(ani_params, 'Speed', -1, 2).step(0.01).onChange(function(v){
-            var fps = Math.pow(10, v);
-            canvas.set_fps(fps);
-          });
-          gui_folders.Animation.add(ani_params, 'Key Frame', 0, max_keyframe - 0.1).step(0.1)
-          .onChange(function(v){
-            canvas.ani_reset(v);
-          });
+          if(x.control_animation || false){
+            gui_folders.Animation.open();
+            var keyframe_shift = x.keyframe_shift;
+            var ani_params = {
+              'Play/Pause' : true,
+              'Reset' : canvas.ani_reset,
+              'Speed' : 0,
+              'Time' : keyframe_shift
+            };
+
+            gui_folders.Animation.add(ani_params, 'Play/Pause').onChange(function(v){ canvas.ani_toggle(v); });
+            gui_folders.Animation.add(ani_params, 'Reset');
+            gui_folders.Animation.add(ani_params, 'Speed', -1, 2).step(0.01).onChange(function(v){
+              var fps = Math.pow(10, v);
+              canvas.set_fps(fps);
+            });
+            gui_folders.Animation.add(ani_params, 'Time', keyframe_shift, max_keyframe + keyframe_shift).step(0.1)
+            .onChange(function(v){
+              canvas.ani_reset(v - keyframe_shift);
+            });
 
 
-          // Add animation callbacks to update bar
-          canvas.ani_callback(function(frame){
-            ani_params['Key Frame'] = frame;
-            // Iterate over all controllers
-            for (var i in gui_folders.Animation.__controllers) {
-              if(gui_folders.Animation.__controllers[i].property == 'Key Frame'){
-                gui_folders.Animation.__controllers[i].updateDisplay();
+            // Add animation callbacks to update bar
+            canvas.ani_callback(function(frame){
+              ani_params['Time'] = frame + keyframe_shift;
+              // Iterate over all controllers
+              for (var i in gui_folders.Animation.__controllers) {
+                if(gui_folders.Animation.__controllers[i].property == 'Time'){
+                  gui_folders.Animation.__controllers[i].updateDisplay();
+                }
               }
-            }
-          }, true);
+            }, true);
 
-
+          }
 
         }
 
