@@ -2,7 +2,7 @@
 Package: threejsr
 Type: Package
 Title: Htmlwidgets that brings THREEJS to R
-Version: 0.1.17
+Version: 0.1.18
 Author@R: c(
     person("Zhengjia", "Wang", role = c("aut", "cph", "cre"), email = "dipterix.wang@gmail.com"),
     person("Xiang", "Zhang", role = c("aut"), email="zhangxiang94007@gmail.com")

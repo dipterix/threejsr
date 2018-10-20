@@ -118,7 +118,7 @@ window.THREEJSRCANVAS = (function(){
 
 
 			if(ani_active){
-			  // FPS = 20;
+			  // FPS = 1 first, but can be adjusted later
         var __time_elapsed = (new Date()) - ani_start,
             __frame = (__time_elapsed / 1000 * fps) % max_keyframe;
             current_keyframe = __frame;
@@ -234,7 +234,7 @@ window.THREEJSRCANVAS = (function(){
       controls = {};
       geoms = [];
       ani_start = new Date();
-      fps = 20;
+      fps = 1;
       animation_stack = [];
       ani_active = true;
       max_keyframe = Infinity;

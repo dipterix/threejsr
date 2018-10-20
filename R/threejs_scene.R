@@ -11,7 +11,7 @@ threejs_scene.default <- function(
   elements = list(),
   sidebar,
   show_stats = F,
-  fps = 20,
+  fps = 1,
   keyframe_shift = 0,
   control_gui = T,
   control_collapsed = T,
