@@ -28,3 +28,21 @@ read.freesurf.asc <- function(file){
     faces = faces
   ))
 }
+
+#' @export
+read.freesurf.gii <- function(file){
+  file = '/Volumes/data/rave_data/ent_data/congruency/YAH/rave/suma/lh.pial.gii'
+  if('gifti' %in% installed.packages()[,1]){
+    dat = gifti::read_gifti(file)
+    vertices = dat$data[[1]]
+    faces = dat$data[[2]]
+    header = c(nrow(vertices), nrow(faces))
+    return(list(
+      header = header,
+      vertices = vertices,
+      faces = faces
+    ))
+  }else{
+    stop('"gifti" package is needed. Please run `install.packages("gifti")` to install it.')
+  }
+}
