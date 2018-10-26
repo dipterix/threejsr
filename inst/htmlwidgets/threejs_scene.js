@@ -103,6 +103,19 @@ HTMLWidgets.widget({
       renderValue: function(x) {
         window.x = x;
 
+        // set camera positions
+        if(typeof(x.main_camera) === 'object'){
+          if(x.main_camera.position !== undefined){
+            canvas.camera.position.fromArray(x.main_camera.position);
+          }
+          if(x.main_camera.up !== undefined){
+            canvas.camera.up.fromArray(x.main_camera.up);
+          }
+          if(x.main_camera.zoom !== undefined){
+            cc.camera.zoom = x.main_camera.zoom;
+          }
+        }
+
         // Add data gui
         var gui = new dat.GUI({ autoPlace: false }),
             gui_folders = {},

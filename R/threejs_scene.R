@@ -20,6 +20,11 @@ threejs_scene.default <- function(
   mouse_control_target = c(0,0,0),
   control = 'orthographic',
   background_colors = c('#ffffff', '#efefef'),#c('#efefef', '#fefefe'),
+  main_camera = list(
+    position = c(0,0,500),
+    up = c(0,1,0),
+    zoom = 1
+  ), # look from z=500 to 0,0,0
   extra_cameras = list(),
   callback_id = '',
   width = '100%',
@@ -72,6 +77,7 @@ threejs_scene.default <- function(
     control = control,
     control_animation = control_animation,
     mouse_control_target = mouse_control_target,
+    main_camera = main_camera,
     extra_cameras = extra_cameras,
     callback_id = callback_id,
     background_colors = t(col2rgb(background_colors)) / 255,

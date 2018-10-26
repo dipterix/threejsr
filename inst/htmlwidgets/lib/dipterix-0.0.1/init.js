@@ -736,7 +736,11 @@ window.THREEJSRCANVAS = (function(){
                   }
                   // Then loop = false and animation ends, no need to update
                   var loc = find_keys(frame);
-                  e.userData.update_data_texture(loc[0], loc[1], loc[2], loc[3]);
+                  try {
+                    e.userData.update_data_texture(loc[0], loc[1], loc[2], loc[3]);
+                  } catch (e) {
+                    console.log(e);
+                  }
                 }
               };
               e.userData.__funs[args.name](0, e);
