@@ -104,7 +104,8 @@ HTMLWidgets.widget({
         window.x = x;
 
         // set camera positions
-        if(typeof(x.main_camera) === 'object'){
+        // We main_camera to be a named list object
+        if(Object.prototype.toString.call(x.main_camera) === 'object object'){
           if(x.main_camera.position !== undefined){
             canvas.camera.position.fromArray(x.main_camera.position);
           }
