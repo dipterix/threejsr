@@ -1,3 +1,4 @@
+#' Sphere geom
 #' @export
 GeomSphere <- R6::R6Class(
   classname = 'Sphere',

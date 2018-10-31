@@ -1,3 +1,4 @@
+#' Plane Geom
 #' @export
 GeomPlane <- R6::R6Class(
   classname = 'plane',

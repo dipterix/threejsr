@@ -1,3 +1,5 @@
+#' Free Geom object
+#' @import assertthat
 #' @export
 GeomFreeMesh <- R6::R6Class(
   classname = 'FreeMesh',

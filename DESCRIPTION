@@ -2,13 +2,14 @@
 Package: threejsr
 Type: Package
 Title: Htmlwidgets that brings THREEJS to R
-Version: 0.1.20
-Author@R: c(
-    person("Zhengjia", "Wang", role = c("aut", "cph", "cre"), email = "dipterix.wang@gmail.com"),
-    person("Xiang", "Zhang", role = c("aut"), email="zhangxiang94007@gmail.com")
+Version: 0.1.21
+Date: 2018-10-29
+Authors@R: c(
+    person("Zhengjia", "Wang", email = "dipterix.wang@gmail.com", role = c("aut", "cre")),
+    person("Xiang", "Zhang", email="zhangxiang94007@gmail.com", role = "aut")
     )
 Maintainer@R: c(
-    person("Zhengjia", "Wang", role = c("aut", "cph", "cre"), email = "dipterix.wang@gmail.com")
+    person("Zhengjia", "Wang", email = "dipterix.wang@gmail.com", role = c("aut", "cre"))
     )
 Description: THREEJS (https://threejs.org/) is a powerful JavaScript 3D visualization
     library which drives WebGL. Htmlwidgets (https://www.htmlwidgets.org/) builds bridge
@@ -18,4 +19,12 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.0
 Imports:
-    htmlwidgets (>= 1.2)
+    htmlwidgets (>= 1.2),
+    assertthat,
+    stringr,
+    shiny,
+    base64enc,
+    jsonlite
+Suggests:
+    gifti
+

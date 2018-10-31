@@ -1,6 +1,9 @@
 
 #' File or any R objects to Data URI, base64 encoded
-#' @export
+#' @param obj Object for file
+#' @param mime Mine type
+#' @param is_file obj is file or not
+#' @param ... pass to jsonlite::toJSON
 as_data_uri <- function(obj, mime = "text/plain;charset=US-ASCII", is_file = FALSE, ...){
   if(is_file){
     con = file(obj, "rb")
@@ -29,6 +32,9 @@ as_data_uri <- function(obj, mime = "text/plain;charset=US-ASCII", is_file = FAL
 #   sprintf('data:%s;base64,%s', mime, jsonlite::base64_enc(jsonlite::toJSON(obj, ...)))
 # }
 
+#' Convert file to dataURI via base64enc package
+#' @param file file to be converted
+#' @param ... pass to base64enc::dataURI
 #' @export
 as_data_uri_file <- function(file, ...){
   base64enc::dataURI(file = file, ...)

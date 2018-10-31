@@ -1,3 +1,5 @@
+#' Main function to render threejsr scene
+#' @param ... pass to other methods
 #' @import htmlwidgets
 #' @export
 threejs_scene <- function(...){
@@ -95,6 +97,10 @@ threejs_scene.default <- function(
     package = 'threejsr')
 }
 
+#' Shiny-threejsr output
+#' @param outputId character ID for shiny outputs
+#' @param width css width default '100\%'
+#' @param height css height default '400px
 #' @import shiny
 #' @export
 threejsOutput <- function(outputId, width = "100%", height = "400px") {
@@ -102,6 +108,10 @@ threejsOutput <- function(outputId, width = "100%", height = "400px") {
 }
 
 
+#' Render shiny-threejsr scene
+#' @param expr expression to be evaluated
+#' @param env runtime environment see shiny outputs
+#' @param quoted is expr quoted?
 #' @export
 renderThreejs <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) }

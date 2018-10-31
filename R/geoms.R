@@ -304,6 +304,6 @@ TGeom <- R6::R6Class(
 
 
 #' @export
-as.list.TGeom <- function(obj){
-  obj$to_list()
+as.list.TGeom <- function(x, ...){
+  x$to_list(...)
 }

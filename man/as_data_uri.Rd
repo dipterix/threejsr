@@ -7,6 +7,15 @@
 as_data_uri(obj, mime = "text/plain;charset=US-ASCII", is_file = FALSE,
   ...)
 }
+\arguments{
+\item{obj}{Object for file}
+
+\item{mime}{Mine type}
+
+\item{is_file}{obj is file or not}
+
+\item{...}{pass to jsonlite::toJSON}
+}
 \description{
 File or any R objects to Data URI, base64 encoded
 }

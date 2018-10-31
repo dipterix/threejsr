@@ -1,5 +1,7 @@
 # read ascii freesurfer
 
+#' Read free-surfer files (ascii)
+#' @param file file to be read
 #' @import stringr
 #' @export
 read.freesurf.asc <- function(file){
@@ -29,11 +31,13 @@ read.freesurf.asc <- function(file){
   ))
 }
 
+#' Read free-surfer files (gifti)
+#' @param file file to be read
 #' @export
 read.freesurf.gii <- function(file){
   file = '/Volumes/data/rave_data/ent_data/congruency/YAH/rave/suma/lh.pial.gii'
   if('gifti' %in% installed.packages()[,1]){
-    dat = gifti::read_gifti(file)
+    dat = eval(parse(text = sprintf('gifti::read_gifti(file)')))
     vertices = dat$data[[1]]
     faces = dat$data[[2]]
     header = c(nrow(vertices), nrow(faces))
