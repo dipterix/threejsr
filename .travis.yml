@@ -1,0 +1,21 @@
+language: r
+sudo: true
+cache: packages
+warnings_are_errors: true
+os:
+  - linux
+r:
+  - 3.4
+  - devel
+
+
+
+after_success:
+  - Rscript -e 'library(threejsr)'
+
+
+notifications:
+  email: dipterix.wang@gmail.com
+
+
+
