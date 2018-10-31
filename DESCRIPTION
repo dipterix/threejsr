@@ -14,7 +14,7 @@ Maintainer@R: c(
 Description: THREEJS (https://threejs.org/) is a powerful JavaScript 3D visualization
     library which drives WebGL. Htmlwidgets (https://www.htmlwidgets.org/) builds bridge
     from JS to R. ThreeJSR aims at easy-customizing your 3D plots.
-License: MIT License
+License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.0
