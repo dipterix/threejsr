@@ -15,18 +15,8 @@ GeomSphere <- R6::R6Class(
   ),
 
   public = list(
-    initialize = function(
-      position,
-      mesh_name,
-      mesh_info = mesh_name,
-      radius = 10,
-      widthSegments = 10,
-      heightSegments = 6,
-      phiStart = 0,
-      phiLength = 2 * pi,
-      thetaStart = 0,
-      thetaLength = pi,
-      ...
+    initialize = function(position, mesh_name, mesh_info = mesh_name, radius = 10, widthSegments = 10,
+                          heightSegments = 6, phiStart = 0, phiLength = 2 * pi, thetaStart = 0, thetaLength = pi,...
     ) {
       super$initialize(position = position, mesh_name = mesh_name, mesh_info = mesh_info, mesh_type = 'sphere', ...)
 
@@ -39,6 +29,21 @@ GeomSphere <- R6::R6Class(
       private$thetaLength = thetaLength
 
       return(self)
+    },
+
+    print = function(x, quiet = F, ...){
+      s = c(sprintf('threejsr geom [sphere] - %s', private$mesh_name),
+            sprintf('\tradius \t\t\t- %.4f', private$radius),
+            sprintf('\twidthSegments \t\t- %d', private$widthSegments),
+            sprintf('\theightSegments \t\t- %d', private$heightSegments),
+            sprintf('\tn vertices \t\t- %d', (private$widthSegments) * (private$heightSegments - 2) + 2),
+            '[GeomSphere] methods:', '',
+            '\tset_radius \t\t-Set sphere radius (positive number)'
+      )
+      ss = super$print(x, quiet = T)
+      cat(s, ss, sep = '\n')
+
+      return(invisible(self))
     },
 
     set_radius = function(radius){

@@ -1,0 +1,144 @@
+---
+title: "Threejsr - First Example"
+author: "Zhengjia Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`Threejs` is a powerful Javascript library that uses WebGL to render 3D objects in 
+html canvas. `Threejsr` provides interface to this library and enables easy 3D 
+visualizations in R.
+
+## A Basic Example
+
+To start, let's see the following code
+
+```{r basic example}
+library(threejsr)
+
+sphere <- geom_sphere(position = c(100, 50, 200), mesh_name = 'Ball 1', 
+                      radius = 10)
+
+threejs_scene(sphere, control_gui = F)
+```
+
+
+`geom_sphere` creates a `GeomSphere` object at $(100, 50, 200)$. This geometry 
+name is `Ball 1`. It has radius of `10` and no special rendering. Clicking the 
+sphere and you will see its name showing up in the view.
+
+`threejs_scene` functions as "plot", passing all parameters to threejs. Enter 
+`?threejs_scene` and you will see a detailed document for how to set control gui, 
+how to play animation with different speed, how to initialize main/side cameras 
+with different parameters, or show/hide objects via `layer` parameters.
+
+## Geometries
+
+Let's see more examples
+
+```{r geometries}
+
+sphere <- geom_sphere(position = c(100, 50, 200), mesh_name = 'Ball 1', 
+                      radius = 10)
+
+plane <- geom_plane(
+  position = c(0,0,0), mesh_name = 'plane', width = 256, height = 256, 
+  mesh_info = '<span style="color:red">Colored info</span>', 
+)
+
+
+f <- 'https://github.com/dipterix/rave_example_data/raw/master/data/data_dir/demo/sub1/rave/suma/lh.pial.asc'
+dat = read.freesurf.asc(f)
+brain <- geom_free(position = c(0,0,0), mesh_name = 'freemesh', 
+                   vertices = dat$vertices, faces = dat$faces, 
+                   hover_enabled = F, # turn this to true if you have a good GPU
+                   mesh_info = 'Left Hemisphere')
+
+threejs_scene(sphere, plane, brain, control_gui = F,
+              show_stats = T)
+```
+
+There are three types of geometries in the first version:
+
+1. GeomSphere class: Sphere with customized radius (sphere in the example). 
+`GeomSphere` can be initialized by `GeomSphere$new`, or `geom_sphere`.
+2. GeomPlane class: Plane with customized width and height (plane in the 
+example). This class can be initialized by `GeomPlane$new` or `geom_plane`
+3. GeomFreeMesh class: Any geometry with given vertex positions and face 
+indices (brain in the example), initialized by `GeomFreeMesh$new` or `geom_free`.
+
+## Color/Animation
+
+There is not color rendering for free geometry
+
+```{r animation}
+
+# Plain RGBA animation with transparency
+sphere <- geom_sphere(position = c(100, 50, 200), mesh_name = 'Ball 1', 
+                      radius = 10)
+
+sphere_data <- data.frame(
+  time = -10:10, # 21 frames
+  red = (0:20) / 20,
+  green = rep(1, 21),
+  blue = rev((0:20) / 20),
+  alpha = abs(-10:10) / 10
+)
+sphere$animation_event(
+  name = 'ani-sphere', event_data = as.matrix(sphere_data[, -1]), 
+  key_frames = sphere_data$time + 10, pixel_size = 4, alpha = T)
+
+
+
+# Facy data material for plane
+plane <- geom_plane(
+  position = c(0,0,0), mesh_name = 'plane', width = 256, height = 256, 
+  mesh_info = '<span style="color:red">Colored info</span>', is_clipper = T
+)
+key_frames = (1:10) * 5
+plane_data <- sapply(key_frames, function(k){
+  # k is keyframe, or position z of plane
+  # we use k as alpha and 
+  color_type = floor(k / 17)
+  # generate 100 colors
+  re = replicate(100, c(0,0,0,k/10))
+  re[color_type, ] = seq(0, 1, length.out = 100)
+  as.vector(re)
+})
+dim(plane_data) <- c(4, 100, length(key_frames))
+plane_data <- aperm(plane_data, c(3,1,2))
+dim(plane_data)
+
+plane$positional_event(
+  name = 'ani-plane', event_data = as.vector(plane_data), 
+  key_frames = key_frames, axis = 'z', pixel_size = 4, alpha = T
+)
+
+plane$add_position_control(
+  name = 'ani-plane', axis = 'z', label = 'Plane Z Position', min = 0, 
+  max = 11 * 5, initial = 10, step = 1)
+
+
+brain <- geom_free(position = c(0,0,0), mesh_name = 'freemesh', 
+                   vertices = dat$vertices, faces = dat$faces, 
+                   hover_enabled = F, # turn this to true if you have a good GPU
+                   mesh_info = 'Left Hemisphere', clippers = 'plane')
+
+
+threejs_scene(sphere, plane, brain, control_gui = T, control_collapsed = F,
+              keyframe_shift = -10, show_stats = T, fps = 3)
+```
+
+
+## Cameras

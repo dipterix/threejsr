@@ -13,15 +13,16 @@ dependencies:
     version: 0.0.1
     src: htmlwidgets/lib/threejs-0.0.1
     script:
-      - js/three.js
+      - js/three.min.js
       - js/controls/TrackballControls.js
       - js/Detector.js
       - js/libs/stats.min.js
       - js/libs/dat.gui.min.js
-      - js/loaders/GLTFLoader.js
       - js/controls/OrbitControls.js
       - js/controls/OrthographicTrackballControls.js
       - js/controls/PointerLockControls.js
+    style:
+      - css/dat.gui.css
   - name: dipterix
     version: 0.0.1
     src: htmlwidgets/lib/dipterix-0.0.1

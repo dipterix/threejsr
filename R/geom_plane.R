@@ -33,6 +33,20 @@ GeomPlane <- R6::R6Class(
       return(self)
     },
 
+    print = function(x, quiet = F, ...){
+      s = c(sprintf('threejsr geom [plane] - %s', private$mesh_name),
+            sprintf('\tradius \t\t\t- %.4f', private$radius),
+            sprintf('\twidth \t\t- %.4f', private$width),
+            sprintf('\theight \t\t- %.4f', private$height),
+            sprintf('\twidthSegments \t\t- %d', private$widthSegments),
+            sprintf('\theightSegments \t\t- %d', private$heightSegments),
+            ''
+      )
+      ss = super$print(x, quiet = T)
+      cat(s, ss, sep = '\n')
+      return(invisible(self))
+    },
+
     to_list = function(){
       re = super$to_list()
       re$geom_args = list(

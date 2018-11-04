@@ -4,7 +4,7 @@
 \alias{threejsOutput}
 \title{Shiny-threejsr output}
 \usage{
-threejsOutput(outputId, width = "100\%", height = "400px")
+threejsOutput(outputId, width = "100\%", height = "600px")
 }
 \arguments{
 \item{outputId}{character ID for shiny outputs}

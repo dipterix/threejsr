@@ -30,7 +30,7 @@ GeomFreeMesh <- R6::R6Class(
       private$normals = as.vector(replicate(nrow(vertices), c(0,0,1)))
 
       if(length(color) == 1){
-        color = as.vector(col2rgb(color))
+        color = as.vector(grDevices::col2rgb(color))
         color = color / 255
         color = as.vector(replicate(nrow(vertices), color))
       }else{
@@ -72,6 +72,21 @@ GeomFreeMesh <- R6::R6Class(
         colors = private$colors
       )
       re
+    },
+
+    print = function(x, quiet = F, ...){
+      s = c(sprintf('threejsr geom [freemesh] - %s', private$mesh_name),
+            sprintf('\tn vertices \t\t- %d', length(private$vertices) / 3),
+            sprintf('\tn faces \t\t- %d', length(private$faces) / 3),
+            '[GeomSphere] methods:', '',
+            '\tget_data \t\t-Get vertices or faces data',
+            '\tget_vertex_position \t- Given vertex id, tell its position. Vertex id starts from 0',
+            '\tget_face \t\t- Given face id, tells vertices id. Face id starts from 1',
+            ''
+      )
+      ss = super$print(x, quiet = T)
+      cat(s, ss, sep = '\n')
+      return(invisible(self))
     }
 
   )

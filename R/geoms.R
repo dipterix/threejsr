@@ -65,6 +65,36 @@ TGeom <- R6::R6Class(
     mesh_info = '',
     user_data = list(),
 
+    print = function(x, quiet = F, ...){
+      s = c(
+        'methods for all threejsr TGeom objects',
+        '\tset_name \t\t- Set name for threejs geom/mesh object, unique key',
+        '\tto_list/to_json \t- Serialize object to list/json',
+        '\tanimation_event \t- Render color to mesh, see ?render_color',
+        '\tremove_event \t\t- Remove event under event_type and name',
+        '\tadd_visibility_control \t- Add to control panel show/hide object',
+        '\tset_hook \t\t- Add red line segment to hooked position (hook_to xyz)',
+        '\trotateX \t\t- Rotate along X axis',
+        '\trotateY \t\t- Rotate along Y axis',
+        '\trotateZ \t\t- Rotate along Z axis',
+        '\tset_transform \t\t- Set/Append transformation matrix',
+        '\t(rotateX, rotateY, rotateZ, set_transform don\'t work with GeomSphere class)',
+        '',
+        'Experimental methods: (might change later)',
+        '\textra_data \t\t- Along with callback_id, returns callbacks to shiny apps',
+        '\tadd_event \t\t- Add customized Javascript event (experimental)',
+        '\tadd_position_control \t- Add to control panel to move object along axis',
+        '\tadd_numeric_control \t- Add numeric controls to mesh object',
+        '\tadd_custom_control \t- Add customized Javascript code to control object'
+      )
+      if(quiet){
+        return(invisible(s))
+      }else{
+        cat(s, sep = '\n')
+        return(invisible(self))
+      }
+    },
+
     initialize = function(position, mesh_name, mesh_type, mesh_info = mesh_name, ...,
                           layer = 1, .args = list(),
                           hover_enabled = TRUE,

@@ -36,7 +36,7 @@ read.freesurf.asc <- function(file){
 #' @export
 read.freesurf.gii <- function(file){
   file = '/Volumes/data/rave_data/ent_data/congruency/YAH/rave/suma/lh.pial.gii'
-  if('gifti' %in% installed.packages()[,1]){
+  if('gifti' %in% utils::installed.packages()[,1]){
     dat = eval(parse(text = sprintf('gifti::read_gifti(file)')))
     vertices = dat$data[[1]]
     faces = dat$data[[2]]

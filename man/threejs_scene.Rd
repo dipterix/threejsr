@@ -4,11 +4,144 @@
 \alias{threejs_scene}
 \title{Main function to render threejsr scene}
 \usage{
-threejs_scene(...)
+threejs_scene(..., elements = list(), sidebar, show_stats = F,
+  fps = 1, keyframe_shift = 0, control_gui = T,
+  control_collapsed = T, control_animation = T,
+  mouse_control = "orthographic", mouse_control_target = c(0, 0, 0),
+  control = "orthographic", background_colors = c("#ffffff",
+  "#efefef"), main_camera = NULL, extra_cameras = list(),
+  callback_id = "", width = "100\%", height = "600px")
 }
 \arguments{
-\item{...}{pass to other methods}
+\item{...}{TGeom objects}
+
+\item{elements}{In case you have a list of TGeom objects}
+
+\item{sidebar}{Default NULL, customized html string for additional sidebars}
+
+\item{show_stats}{show threejs render statustics}
+
+\item{fps}{animation default start fps}
+
+\item{keyframe_shift}{animation keyframe display shift. See details}
+
+\item{control_gui}{show control panel or not}
+
+\item{control_collapsed}{if show control panel, is control panel collapsed by default}
+
+\item{control_animation}{if show control panel, show animation section or not}
+
+\item{mouse_control}{default mouse control, "trackball", "orbit", or "orthographic", default is "orthographic"}
+
+\item{mouse_control_target}{mouse control rotate around target position, default is origin}
+
+\item{control}{ignored}
+
+\item{background_colors}{render scene background color. First is the main scene, second is for side-cameras}
+
+\item{main_camera}{a named list to set initial main camera params see details}
+
+\item{extra_cameras}{side-cameras}
+
+\item{callback_id}{shiny input ID, used along with extra_data method to generate shiny callbacks}
+
+\item{width}{widget width, default is 100\%}
+
+\item{height}{widget height, default is 600px - full screen height}
 }
 \description{
 Main function to render threejsr scene
+}
+\details{
+1. Animation:
+
+Each TGeom objects has a method animation_event which takes 7 params, in
+which "event_data", "key_frames" are the most important params.
+
+"key_frames" defines the time. Due to the implementation, key_frames must be
+positive numeric vectors. "keyframe_shift" allows the displayed "key_frames"
+in animation panel be negative by shifting the keyframes.
+
+"event_data" should be a matrix defines the color, whose nrow(.) should equals
+to length(key_frames). The number of columns of event_data defines the color
+mode: one column is usually grey-scale, three columns is rgb color, and four
+columns is with transparency. To tell threejs your color mode, use "pixel_size"
+to indicate the number of columns. (this will be auto-detected in the future)
+
+2. Cameras:
+
+There are two types of cameras in the canvas: main camera and side cameras.
+
+"main_camera" parameter should be a list indicating initial camera params.
+An example would be:
+
+\code{main_camera = list(position = c(0,0,500), up = c(0,1,0), zoom = 1)}
+
+position: initial position (x,y,z), here the camera is at z-axis
+up: camera up-direction, the screen top is y axis
+zoom: zoom-in level, here is 1, no zoom
+
+"extra_cameras" defines side-cameras. It should be a list of named lists.
+An example would be:
+
+\code{phere = geom_sphere(position = c(1,2,300), 'ball 1', radius = 10, layer = 3)}
+
+\code{extra_cameras = list(
+  list(look_at = sphere, position = c(-200, 0, 0)))}
+
+sphere is a GeomSphere object. We added a side camera focusing on the sphere
+no matter how you move the main camera.
+
+3. Layer and visibility:
+
+All geom objects has attribute "layer", you can pass layer param during the
+initialize process. To enable visibility in main-camera, layer must be from 1
+to 4. For side-cameras, layers must be from 3 or 4.
+}
+\examples{
+\dontrun{
+sphere = geom_sphere(position = c(1,2,300), mesh_name =  'ball 1',
+                     radius = 10, layer = c(1,3))
+plane = geom_plane(
+  position = c(0,0,0), mesh_name = 'plane', width = 100, height = 50,
+  mesh_info = '<span style="color:red">Colored info</span>',
+)
+# Set hook
+sphere$set_hook(c(0,0,0))
+
+# Use rgba color
+pixel_size = 4 # 4 for rgba
+
+sphere$animation_event(
+  name = 'ani color - sphere',
+  event_data = matrix(c(
+    0,0,1,1,
+    1,0,1,0.3,
+    1,1,1,0.8
+  ), ncol = pixel_size, byrow = T),
+  key_frames = 1:3,
+  pixel_size = pixel_size,
+  alpha = T   # show alpha
+)
+
+plane$animation_event(
+  name = 'ani color - plane',
+  event_data = matrix(c(
+    0,0,1,0.8
+  ), ncol = pixel_size, byrow = T),
+  key_frames = 1,
+  pixel_size = pixel_size,
+  alpha = T   # show alpha
+)
+
+threejs_scene(
+  sphere,
+  plane,
+  show_stats = T,
+  extra_cameras = list(
+  list(look_at = sphere, position = c(-200, 0, 0)),
+      list(look_at = plane, position = c(0,-200, 0))
+     )
+)
+}
 }
