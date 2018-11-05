@@ -11,8 +11,8 @@ Authors@R: c(
 Maintainer@R: c(
     person("Zhengjia", "Wang", email = "dipterix.wang@gmail.com", role = c("aut", "cre"))
     )
-Description: THREEJS (https://threejs.org/) is a powerful JavaScript 3D visualization
-    library which drives WebGL. Htmlwidgets (https://www.htmlwidgets.org/) builds bridge
+Description: THREEJS <https://threejs.org/> is a powerful JavaScript 3D visualization
+    library which drives WebGL. Htmlwidgets <https://www.htmlwidgets.org/> builds bridge
     from JS to R. ThreeJSR aims at easy-customizing your 3D plots.
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
@@ -31,5 +31,6 @@ Imports:
 Suggests:
     gifti,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
