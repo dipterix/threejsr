@@ -133,7 +133,7 @@ threejs_scene <- function(
   extra_cameras = list(),
   callback_id = '',
   width = '100%',
-  height = '600px'
+  height = '100vh'
 ) {
   control = mouse_control
 

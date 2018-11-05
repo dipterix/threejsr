@@ -32,11 +32,13 @@ HTMLWidgets.widget({
   type: "output",
 
   factory: function(el, width, height) {
+    /*
     // get full width if not shiny mode
     if(!HTMLWidgets.shinyMode){
       document.body.style.padding = 0;
       $(el).css({'height':'100vh'});
     }
+    */
 
     // Get DOM elements
     var $el = $(el),

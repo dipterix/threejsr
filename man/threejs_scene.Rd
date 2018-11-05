@@ -10,7 +10,7 @@ threejs_scene(..., elements = list(), sidebar, show_stats = F,
   mouse_control = "orthographic", mouse_control_target = c(0, 0, 0),
   control = "orthographic", background_colors = c("#ffffff",
   "#efefef"), main_camera = NULL, extra_cameras = list(),
-  callback_id = "", width = "100\%", height = "600px")
+  callback_id = "", width = "100\%", height = "100vh")
 }
 \arguments{
 \item{...}{TGeom objects}
