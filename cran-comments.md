@@ -1,4 +1,6 @@
-## Submission (Nov 5, 2018, Currect)
+*Github: https://github.com/dipterix/threejsr*
+
+## Submission (Nov 5, 2018, Current)
 
 #### Test environments
 
