@@ -1,24 +1,41 @@
 *Github: https://github.com/dipterix/threejsr*
 
-## Submission (Nov 5, 2018, Current)
-
 #### Test environments
 
 * local OS X install, R 3.4, R devel
 * ubuntu 12.04 (on travis-ci), R 3.4, R devel
 * win-builder (R 3.4, devel and release)
+
+[//]: # (----------------------------------------------------------------------)
+## Submission (Dec 7, 2018, current)
+
+#### Updates
+
+1. Trimmed package size from 40MB to 5MB. Cannot go down anymore. JS lib size is 
+already 4MB
+
+#### R CMD check results
+
+* Local: There were no ERRORs, no WARNINGs, 1 NOTE
+
+This note is not avoidable because vignette contains massive JS code in dataURI 
+format, as well as one 15MB brain left hemisphere dataURI.
+
+```
+❯ checking installed package size ... NOTE
+    installed size is  5.0Mb
+    sub-directories of 1Mb or more:
+      htmlwidgets   4.3Mb
+```
+
+[//]: # (----------------------------------------------------------------------)
+## Submission (Nov 5, 2018, failed)
 
 #### Updates
 
 1. Added vignette, test, and examples to get rid of warnings
 2. Trimed inst/ folder
 3. Added to NAMESPACE and DESCRIPTION for missing imports 
-
-#### Test environments
-
-* local OS X install, R 3.4, R devel
-* ubuntu 12.04 (on travis-ci), R 3.4, R devel
-* win-builder (R 3.4, devel and release)
 
 #### R CMD check results
 
@@ -36,16 +53,10 @@ checking installed package size ... NOTE
 ```
 
 
-
+[//]: # (----------------------------------------------------------------------)
 ## Submission (Nov 1, 2018, failed)
 
 *Initial Submission*
-
-#### Test environments
-
-* local OS X install, R 3.4, R devel
-* ubuntu 12.04 (on travis-ci), R 3.4, R devel
-* win-builder (R 3.4, devel and release)
 
 #### R CMD check results
 

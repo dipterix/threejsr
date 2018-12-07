@@ -12,7 +12,8 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", 
+  eval = FALSE
 )
 ```
 
@@ -33,6 +34,7 @@ sphere <- geom_sphere(position = c(100, 50, 200), mesh_name = 'Ball 1',
 threejs_scene(sphere, control_gui = F)
 ```
 
+![3D Canvas with one Sphere (Preview)](./src/1.png)
 
 `geom_sphere` creates a `GeomSphere` object at $(100, 50, 200)$. This geometry 
 name is `Ball 1`. It has radius of `10` and no special rendering. Clicking the 
@@ -69,6 +71,8 @@ threejs_scene(sphere, plane, brain, control_gui = F,
               show_stats = T)
 ```
 
+![3D Canvas with one Sphere, Plane, and a Brain (Preview)](./src/2.png)
+
 There are three types of geometries in the first version:
 
 1. GeomSphere class: Sphere with customized radius (sphere in the example). 
@@ -87,7 +91,6 @@ along z-axis. It's color changes according to its position. There is also a
 sphere object and it's color changes along time.
 
 ```{r animation}
-
 # Plain RGBA animation with transparency
 sphere <- geom_sphere(position = c(100, 50, 200), mesh_name = 'Ball 1', 
                       radius = 10)
@@ -133,7 +136,8 @@ plane$add_position_control(
   name = 'ani-plane', axis = 'z', label = 'Plane Z Position', min = 0, 
   max = 11 * 5, initial = 10, step = 1)
 
-
+f <- 'https://github.com/dipterix/rave_example_data/raw/master/data/data_dir/demo/sub1/rave/suma/lh.pial.asc'
+dat = read.freesurf.asc(f)
 brain <- geom_free(position = c(0,0,0), mesh_name = 'freemesh', 
                    vertices = dat$vertices, faces = dat$faces, 
                    hover_enabled = F, # turn this to true if you have a good GPU
@@ -144,6 +148,7 @@ threejs_scene(sphere, plane, brain, control_gui = T, control_collapsed = F,
               keyframe_shift = -10, show_stats = T, fps = 3)
 ```
 
+![3D Canvas with one Sphere, Plane, and a Brain (Animation Preview)](./src/3.png)
 
 ## Cameras
 
@@ -217,6 +222,8 @@ threejs_scene(
   background_colors = c('#000000', '#000000')
 )
 ```
+
+![Side Cameras](./src/4.png)
 
 The clipping plane changes its color and transparency according to its x position 
 and the sphere changes color and transparency according to time. Two side-cameras 
